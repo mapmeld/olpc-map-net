@@ -1,0 +1,203 @@
+<?xml version="1.0"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:georss="http://www.georss.org/georss">
+	<channel>
+		<title>Chile</title>
+		<link>http://chile.ushahidi.com/</link>
+		<pubDate>Thu, 04 Mar 2010 03:26:27 GMT</pubDate>
+		<description>Incident feed for Chile</description>
+		<generator>Ushahidi Engine</generator>
+		<atom:link href="http://chile.ushahidi.com/feed" rel="self" type="application/rss+xml" />
+		<item>
+			<mtitle>Earthquake Magnitude 5.1 - ARAUCANIA</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4249</link>
+			<description><![CDATA[Wednesday, March 03, 2010 at 21:24:02 
+Depth	35 km (21.7 miles)in ARAUCANIA, CHILE.
+ 
+100 km (60 miles) WNW of Temuco, Chile
+155 km (95 miles) NNW of Valdivia, Chile
+160 km (100 miles) SW of Los Angeles, Chile
+620 km (385 miles) SSW of SANTIAGO, Chile]]></description>
+			<pubDate>Thu, 04 Mar 2010 02:24:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4249</guid>
+			<point>-38.465 -73.696</point>
+		</item>
+		<item>
+			<mtitle>Hospital de Lota: inhabilitado, funcionando en colegio</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4238</link>
+			<description><![CDATA[Mayor informaci&Atilde;&sup3;n: Salud Responde 600 360 7777
+
+A&Atilde;&ordm;n no se sabe la ubicaci&Atilde;&sup3;n exacta del colegio en cuesti&Atilde;&sup3;n.]]></description>
+			<pubDate>Thu, 04 Mar 2010 02:22:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4238</guid>
+			<point>-37.298865 -73.550575</point>
+		</item>
+		<item>
+			<mtitle>esta funcionando el Hospital Traumatologico/functioning hospital Concepcion</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4248</link>
+			<description><![CDATA[The following hospital is functioning in Concepcion
+
+En la ciudad est&Atilde;&iexcl; en funcionamiento:
+
+el Hospital Traumatol&Atilde;&sup3;gico
+
+Avda. Roosevelt  1582 Concepci&Atilde;&sup3;n - CHILE]]></description>
+			<pubDate>Thu, 04 Mar 2010 02:16:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4248</guid>
+			<point>-36.82278 -73.03607</point>
+		</item>
+		<item>
+			<mtitle>esta funcionando el Hospital Guillermo Grant Benavente/functioning hospital Concepcion</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4247</link>
+			<description><![CDATA[En la ciudad est&Atilde;&iexcl;n en funcionamiento el Hospital &quot;Guillermo Grant Benavente&quot;, Hospital Traumatol&Atilde;&sup3;gico, Hospital de Lota y el Hospital de Coronel.]]></description>
+			<pubDate>Thu, 04 Mar 2010 02:14:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4247</guid>
+			<point>-36.825296 -73.041256</point>
+		</item>
+		<item>
+			<mtitle>Earthquake Magnitude 5.6 - VALPARAISO, CHILE</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4250</link>
+			<description><![CDATA[Wednesday, March 03, 2010 at 04:58:29 PM at epicenter
+
+Depth	28.7 km (17.8 miles) (poorly constrained)
+
+Region	OFFSHORE VALPARAISO, CHILE
+Distances:	
+50 km (30 miles) SSW of Valparaiso, Chile
+110 km (65 miles) W of SANTIAGO, Chile
+125 km (80 miles) NW of Rancagua, Chile
+210 km (130 miles) SSW of Illapel, Chile]]></description>
+			<pubDate>Thu, 04 Mar 2010 00:58:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4250</guid>
+			<point>-33.463 -71.825</point>
+		</item>
+		<item>
+			<mtitle>Hospital tiene luz y agua / Hospital has light and water</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4216</link>
+			<description><![CDATA[El Hospital de Mulch&Atilde;&copy;n tiene luz y abastecimiento de agua por red p&Atilde;&ordm;blica                       Mayor info: 43-561222
+&Atilde;&sup3; a Salud Responde: 600 360 7777]]></description>
+			<pubDate>Thu, 04 Mar 2010 00:24:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4216</guid>
+			<point>-37.714667 -72.239377</point>
+		</item>
+		<item>
+			<mtitle>El Hospital de Yumbel est&Atilde;&iexcl; sin da&Atilde;&plusmn;o estructural (Hosiptal OK)</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4214</link>
+			<description><![CDATA[Fueron suspendidas las consultas de morbilidad y s&Atilde;&sup3;lo se est&Atilde;&iexcl; entregando atenci&Atilde;&sup3;n de Urgencias y entrega de medicamentos y leche. (Only in charge of emergency, medicine, and providing milk)
+
+Para mayor informaci&Atilde;&sup3;n, llamar a 43-431057
+&Atilde;&sup3; bien, a Salud Responde 600 360 7777]]></description>
+			<pubDate>Thu, 04 Mar 2010 00:16:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4214</guid>
+			<point>-37.09638 -72.556239</point>
+		</item>
+		<item>
+			<mtitle>San Carlos Hospital has light and water but the building has structural damage / El Hospital de San Carlos tiene luz y agua potable pero presenta da&Atilde;&plusmn;os severos en el edificio</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4211</link>
+			<description><![CDATA[Evacuation of emergency, surgery, pediatrics and maternity to the normalized building I and II. More information can be retrieved by calling Salud Responde at 660 360 7777 or 42-411187                               Fueron evacuados los servicios de urgencia, pabellones, servicios de cirug&Atilde;&shy;a, pediatr&Atilde;&shy;a y maternidad, al Edificio normalizado en sus etapas I y II
+
+Mayor informaci&Atilde;&sup3;n, llamar a Salud Responde 600 360 7777 &Atilde;&sup3; bien, al 42-411187]]></description>
+			<pubDate>Thu, 04 Mar 2010 00:00:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4211</guid>
+			<point>-36.422094 -71.959349</point>
+		</item>
+		<item>
+			<mtitle>Chill&Atilde;&iexcl;n Hospital has 227 beds and its emergency service is currently operational / Hospital de Chill&Atilde;&iexcl;n (Herminda Mart&Atilde;&shy;n) tiene 227 camas operativas y con su servicio de urgencia en buen estado.</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4210</link>
+			<description><![CDATA[The hospital tower has structural damage and only two emergency buildings are operational. ICU pediatrics and neonatal beds have been moved to the Pediatrics Service of the old building. Patients were moved to Valdivia and Puerto Montt. For more information, call Salud Responde 600 360 7777        / Est&Atilde;&iexcl; con su Torre con da&Atilde;&plusmn;o estructural y con s&Atilde;&sup3;lo dos pabellones funcionando para urgencia. Las camas UCI de pediatr&Atilde;&shy;a y neonatolog&Atilde;&shy;a fueron trasladadas al Servicio de Pediatr&Atilde;&shy;a de edificio antiguo. Los pacientes fueron trasladados a Valdivia y Puerto Montt.
+
+Mayor informaci&Atilde;&sup3;n: fono Salud Responde 600 360 7777]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:54:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4210</guid>
+			<point>-36.608601 -72.092615</point>
+		</item>
+		<item>
+			<mtitle>Servicios telef&Atilde;&sup3;nicos Regi&Atilde;&sup3;n de la Araucan&Atilde;&shy;a</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4209</link>
+			<description><![CDATA[Aproximadamente un 87% de las radiobases de telefon&Atilde;&shy;a m&Atilde;&sup3;vil se encuentran operando. Las redes fijas se encuentran operando sobre el 90%.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:24:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4209</guid>
+			<point>-38.948921 -72.331113</point>
+		</item>
+		<item>
+			<mtitle>Servicios telef&Atilde;&sup3;nicos regi&Atilde;&sup3;n del B&Atilde;&shy;o B&Atilde;&shy;o</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4208</link>
+			<description><![CDATA[El 18 % de las radiobases de telefon&Atilde;&shy;a m&Atilde;&sup3;vil se encuentran operando. Se mantiene situaci&Atilde;&sup3;n cr&Atilde;&shy;tica en los servicios de telecomunicaciones por la carencia de energ&Atilde;&shy;a el&Atilde;&copy;ctrica, la congesti&Atilde;&sup3;n es muy alta y se presentan problemas importantes de cobertura. Las redes fijas se encuentran operando en un 20%, presentando problemas de operaci&Atilde;&sup3;n derivadas de la carencia de energ&Atilde;&shy;a y la ca&Atilde;&shy;da de los postes que son parte de la red de acceso domiciliario.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:22:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4208</guid>
+			<point>-36.977721 -72.331113</point>
+		</item>
+		<item>
+			<mtitle>Servicios telef&Atilde;&sup3;nicos Regi&Atilde;&sup3;n del Maule</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4207</link>
+			<description><![CDATA[El 45 % de las radiobases de telefon&Atilde;&shy;a m&Atilde;&sup3;vil se encuentran operando. Las comunicaciones contin&Atilde;&ordm;an con severos problemas de cobertura y calidad. Las redes fijas se encuentran operando sobre el 70%.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:19:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4207</guid>
+			<point>-35.511815 -71.689101</point>
+		</item>
+		<item>
+			<mtitle>Regi&Atilde;&sup3;n del Libertador General Bernardo O'Higgins:</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4206</link>
+			<description><![CDATA[La red m&Atilde;&sup3;vil est&Atilde;&iexcl; operando con cerca del 65% de las radiobases habituales. Las redes fijas se encuentran operando sobre el 85%.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:17:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4206</guid>
+			<point>-34.575537 -71.002231</point>
+		</item>
+		<item>
+			<mtitle>Servicios telef&Atilde;&sup3;nicos R. Metropolitana</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4205</link>
+			<description><![CDATA[Telefon&Atilde;&shy;a m&Atilde;&sup3;vil operando con 76% de radioestaciones. Se mantienen zonas con debilidad en la se&Atilde;&plusmn;al, congesti&Atilde;&sup3;n o carencia de cobertura. Las redes fijas se encuentran operando sobre el 90%.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:14:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4205</guid>
+			<point>-33.42536 -70.566466</point>
+		</item>
+		<item>
+			<mtitle>Fuerte Replica en Conceptcion de 5,6 Richter/ Strong aftershock in Concepcion of 5,6 Richter</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4232</link>
+			<description><![CDATA[Fuerte r&Atilde;&copy;plica de 5,6 Richter in Concepci&Atilde;&sup3;n, hubo p&Atilde;&iexcl;nico y miedo, pero NO hubo tsunami. /Strong aftershock of 5,6 Richter in Concepci&Atilde;&sup3;n. People evacuated in fear but there was NO tsunami.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:09:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4232</guid>
+			<point>-36.814815 -73.029257</point>
+		</item>
+		<item>
+			<mtitle>Buses desde Concepcion a Santiago / Buses from Concepcion to Santiago</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4231</link>
+			<description><![CDATA[Buses desde Concepci&Atilde;&sup3;n a Santiago empiezan a salir de las 13 horas en adelante. Salen de la Terminal Camilo Henr&Atilde;&shy;quez. Para m&Atilde;&iexcl;s informaci&Atilde;&sup3;n llamar al 600 660 6600 &Atilde;&sup3; al (02) 822 75 00. M&Atilde;&iexcl;s informaci&Atilde;&sup3;n en el website http://www.turbus.cl/commerce/inicio.jsp. /                                  Buses are leaving from Concepci&Atilde;&sup3;n to Chile, starting at 13 hours. For information check website http://www.turbus.cl/commerce/inicio.jsp or call 600 660 6600 o al (02) 822 75 00]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:06:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4231</guid>
+			<point>-36.8239 -73.0462</point>
+		</item>
+		<item>
+			<mtitle>Servicios Telef&Atilde;&sup3;nicos Valpara&Atilde;&shy;so</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4204</link>
+			<description><![CDATA[Telefon&Atilde;&shy;a m&Atilde;&sup3;vil operando con 80% de radioestaciones, lo cual permite cubrir en t&Atilde;&copy;rminos generales la zona de servicio habitual. La red opera con debilidad y menor capacidad que la habitual, especialmente en aquellas zonas en las que no se ha repuesto el suministro el&Atilde;&copy;ctrico. Las redes fijas se encuentran operando sobre un 90 %, present&Atilde;&iexcl;ndose algunos sectores con intermitencia.]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:03:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4204</guid>
+			<point>-33.050462 -71.616451</point>
+		</item>
+		<item>
+			<mtitle>Difunto reportado/ One reported death</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4230</link>
+			<description><![CDATA[Difunto Efrain Horacio Caviedes Pastenes, 62 A&Atilde;&plusmn;os reported in Do&Atilde;&plusmn;ihue, Cachapoal. One man, Efrain Horacio Caviedes Pastenes, 62 years, reported deceased in Do&Atilde;&plusmn;ihue, Cachapoal]]></description>
+			<pubDate>Wed, 03 Mar 2010 23:03:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4230</guid>
+			<point>-34.231582 -70.967892</point>
+		</item>
+		<item>
+			<mtitle>Health care services suspended / Fueron suspendidas las consultas de morbilidad</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4229</link>
+			<description><![CDATA[Hu&Atilde;&copy;pil Hospital has no structural damage, but health care services are suspended.  The hospital is only providing emergency care and distributing medicines and milk. More information can be retrieved by calling 43-591208 and 600 360 7777 / 
+
+El Hospital de Hu&Atilde;&copy;pil no tiene da&Atilde;&plusmn;o en su estructura, pero fueron suspendidas las consultas de morbilidad.  S&Atilde;&sup3;lo se est&Atilde;&iexcl; entregando atenci&Atilde;&sup3;n de Urgencias y entrega de medicamentos y leche. Fono: 43-591208 Salud Responde: 600 360 7777]]></description>
+			<pubDate>Wed, 03 Mar 2010 22:59:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4229</guid>
+			<point>-37.243017 -71.942947</point>
+		</item>
+		<item>
+			<mtitle>Lista de difuntos en Rancagua, Cachapoal/ List of deceased in Rancagua,Cachapoal</mtitle>
+			<link>http://chile.ushahidi.com/reports/view/4228</link>
+			<description><![CDATA[Lista de difuntos en Rancagua, Cachapoal seg&Atilde;&ordm;n medios de comunicaci&Atilde;&sup3;n/ List of deceased in Rancagua, Cachapoal from media sources. Los difuntos son/The deceased are: Juana Alicia Donoso Lobos, 64 A&Atilde;&plusmn;os]]></description>
+			<pubDate>Wed, 03 Mar 2010 22:58:00 GMT</pubDate>
+			<guid>http://chile.ushahidi.com/reports/view/4228</guid>
+			<point>-34.162031 -70.741012</point>
+		</item>
+	</channel>
+</rss>

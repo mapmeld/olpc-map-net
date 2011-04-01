@@ -1,0 +1,57 @@
+application: mapmeld
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /_ah/login_required
+  script: do_openid_login.py
+
+- url: /about.*
+  script: homepage.py
+
+- url: /query.*
+  script: homepage.py
+
+- url: /olpcMAPolpc/news.*
+  script: mapPage.py
+
+- url: /olpcMAPolpc/geonews.*
+  script: mapPage.py
+
+- url: /feed.*
+  script: homepage.py
+
+- url: /call.*
+  script: phone.py
+
+- url: /sms.*
+  script: phone.py
+
+- url: /saved.*
+  script: phone.py
+
+- url: /plugins.*
+  script: homepage.py
+
+- url: /facebook_io.*
+  script: ushahidi_facebook_io.py
+
+- url: /(.*\.(gif|png|jpg|ico|js|html|rb|css|txt|xml|json|svg|xo|zip|kml|py|kmz|xol|htm|JPG))
+  static_files: static/\1
+  upload: static/(.*\.(gif|png|jpg|ico|js|html|rb|css|txt|xml|json|svg|xo|zip|kml|py|kmz|xol|htm|JPG))
+
+- url: /olpcMAPolpc/home.*
+  script: mapPage.py
+
+- url: /olpcMAPolpc/page.*
+  script: mapPage.py
+
+- url: /olpc.*
+  script: olpcmap.py
+
+- url: /greencrisis.*
+  script: greencrisis.py
+  
+- url: /.*
+  script: homepage.py

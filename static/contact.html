@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MapMeld - Contact</title>
+	<script type="text/javascript">
+var lastSelect=0;
+function msgType(typeCode){
+	var listItem = typeCode.split("|")[0];
+	if(1*listItem==lastSelect){return;}
+	var type = typeCode.split("|")[1];
+	$("hiddenhint").value=type;
+	$("li"+listItem).className="select";
+	$("li"+lastSelect).className="unselect";
+	lastSelect=listItem;
+}
+function $(id){return document.getElementById(id);}
+	</script>
+	<style type="text/css">
+body{
+	font-family:verdana,sans-serif;
+}
+h2{
+	width:100%;
+	border-bottom:1px solid darkgreen;
+	color:darkgreen;
+}
+li.select{
+	cursor:pointer;
+	background-color:#33cc33;
+}
+li.unselect{
+	cursor:pointer;
+	background-color:#cccccc;
+}
+	</style>
+</head>
+<body>
+	<h2>Contact&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://facebook.com/mapmeld" target="_blank"><img src="http://facebook.com/favicon.ico"/></a>&nbsp;&nbsp;<a href="http://twitter.com/mapmeld" target="_blank"><img src="http://twitter.com/favicon.ico"/></a>&nbsp;&nbsp;<a href="http://reddit.com/r/mapmeld" target="_blank"><img src="http://reddit.com/favicon.ico"/></a></h2>
+	<ul>
+		<li id="li0" class="select" onclick="msgType('0|inquiry');">Ask how we can help you</li>
+		<li id="li1" class="unselect" onclick="msgType('1|map_business');">Request Map services</li>
+		<li id="li2" class="unselect" onclick="msgType('2|ondemand_business');">Request OnDemand coverage</li>
+		<li id="li3" class="unselect" onclick="msgType('3|jobs');">Apply for a job</li>
+	</ul>
+	<form action='http://mapmeld.com/contact' method='POST'>
+		<input id='hiddenhint' type='hidden' name='type' value='unknown'/>
+		Name <input name="name"/><br/>
+		E-mail <input name="email"/><br/>
+		<textarea name="message" style="width:100%;height:150px;"></textarea>
+		<br/>
+		<input type='submit' value='Send'/>
+	</form>
+</body>
+</html>

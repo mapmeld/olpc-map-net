@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>olpcMAP.net</title>
+	<link rel="stylesheet" type="text/css" href="http://mapmeld.appspot.com/crowdmap-default.css" />
+	<link rel="stylesheet" type="text/css" href="http://mapmeld.appspot.com/terra.css" />
+	<link rel="stylesheet" type="text/css" href="http://mapmeld.appspot.com/themeroller.css" />
+	<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="http://olpcmap.crowdmap.com/media/css/iehacks.css" />
+	<![endif]--><!--[if IE 7]><link rel="stylesheet" type="text/css" href="http://olpcmap.crowdmap.com/media/css/ie7hacks.css" />
+	<![endif]--><!--[if IE 6]><link rel="stylesheet" type="text/css" href="http://olpcmap.crowdmap.com/media/css/ie6hacks.css" />
+	<![endif]-->
+	<script type="text/javascript">
+function contactMode(){
+	$("coverwindow").style.display="block";
+}
+function closeCoverWindow(){
+	$("coverwindow").style.display="none";
+}
+function $(id){return document.getElementById(id)}
+	</script>
+</head>
+<body id="page">
+	<div class="rapidxwpr floatholder">
+		<div id="header">
+			<div id="searchbox" style="padding-bottom:8px;">
+				<div class="search-form">
+					<form method="get" id="search" action="http://mapmeld.appspot.com/olpcMAPolpc/page/search">
+						Search olpcMAP.net<br/>
+						<ul>
+						<li><input type="text" name="k" value="" class="text"/></li>
+						<li><input type="submit" name="b" class="searchbtn" value="search" /></li>
+						</ul>
+						<input type="hidden" name="fmt" value="html"/>
+					</form>
+				</div>
+			</div>
+			<div id="logo">
+				<h1>olpcMAP.net</h1>
+				<span>a geosocial network for open-source EduTech</span>
+			</div>
+			<div class="submit-incident clearingfix">
+				<a href="http://mapmeld.appspot.com/olpcMAP?add=volunteer" style="width:250px;">Add Volunteer</a>
+				<a href="http://mapmeld.appspot.com/olpcMAP?add=project" style="width:250px;">Add Project</a>
+			</div>
+		</div>
+		<div id="middle">
+			<div class="background layoutleft">
+				<div id="mainmenu" class="clearingfix">
+					<ul>
+						<li><a href="http://mapmeld.appspot.com/olpcMAPolpc/home" class="active">Home</a></li>
+						<li><a href="http://mapmeld.appspot.com/olpcMAP">Live Map</a></li>
+						<li><a href="http://wiki.laptop.org">Laptop Help</a></li>
+						<li><a href="http://mapmeld.appspot.com/olpcMAPolpc/community">Map Hacks</a></li>
+						<li><a href="#" onclick="contactMode()">Contact Us</a></li>
+					</ul>
+				</div>
+<div id="main" class="clearingfix">
+	<div id="mainmiddle" class="floatbox withright">
+		<div id="right" class="clearingfix">
+			<ul id="category_switch" class="category-filters">
+				<li><a class="active" id="cat_0" href="#"><span class="swatch" style="background-color:#CC0000"></span><span class="category-title">All Categories</span></a></li>
+				<li><a href="#" id="cat_2"><span class="swatch" style="background-color:#3300FF"></span><span class="category-title">Volunteers</span></a><div class="hide" id="child_2"></div></li><li><a href="#" id="cat_3"><span class="swatch" style="background-color:#663300"></span><span class="category-title">Projects</span></a><div class="hide" id="child_3"></div></li>			</ul>
+			<br />
+			<ul class="category-filters">
+				<h5>Latest Updates <span>(from olpcMAP.net, in chronological order)</span></h5>
+				<table class="table-list">
+					<thead>
+						<tr>
+							<th scope="col" class="icon">Icon </th>
+							<th scope="col" class="title">Name </th>
+							<th scope="col" class="location">Lat,Lng</th>
+							<th scope="col" class="date">Time</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><img src="http://sites.google.com/site/olpcau/home/Greensmall1.png" style="max-height:14pt;max-width:14pt;"></td>
+							<td><a href="http://mapmeld.appspot.com/olpcMAPolpc?id=359001">olpcMAP Sprint: Day 1</a></td>
+							<td>42.37250<br/>-71.10729</td>
+							<td>Last Month</td>
+						</tr>
+					</tbody>
+				</table>
+			</ul>
+		</div>
+		<div id="content" class="clearingfix">
+			<div class="floatbox">
+				<div class="filters clearingfix">
+				</div>
+				<div class="map" id="map">
+					<a href="http://mapmeld.appspot.com/olpcMAP"><img src="http://mapmeld.appspot.com/staticmap.png" width="577" alt="Go to Community Map"/></a>
+					<br/>
+					<a href="http://megaswf.com/simple_serve/103098/" target="_blank"><img src="http://mapmeld.appspot.com/addstuff.png" height="311" width="577" alt="Watch Video Introduction"/></a>
+				</div>
+
+<div style="clear:both;"></div>
+<div id="mapStatus">
+	<div id="mapScale" style="border-right: solid 1px #999"></div>
+	<div id="mapMousePosition" style="min-width: 135px;border-right: solid 1px #999;text-align: center"></div>
+	<div id="mapProjection" style="border-right: solid 1px #999"></div>
+	<div id="mapOutput"></div>
+</div>
+<div style="clear:both;"></div>
+<div class="slider-holder">
+	<form action="">
+		<input type="hidden" value="0" name="currentCat" id="currentCat"/>
+
+		<fieldset>
+			<div class="play"><a href="#" id="playTimeline">Play</a></div>
+			<label for="startDate">From:</label>
+			<select name="startDate" id="startDate"><optgroup label="2010"><option value="1291183200" selected="selected" >Dec 2010</option></optgroup></select>
+			<label for="endDate">to:</label>
+			<select name="endDate" id="endDate"><optgroup label="2010"><option value="1293861599" selected="selected" >Dec 2010</option></optgroup></select>
+
+		</fieldset>
+	</form>
+</div>
+<div id="graph" class="graph-holder"></div>			</div>
+		</div>
+	</div>
+</div>
+<div class="content-container">
+	<div class="content-blocks clearingfix">
+		<div class="content-block-left">
+			<h5>How to Report</h5>
+			<ol>
+				<li>By sending a tweet with the hashtag/s  <strong>olpcmap</strong></li>
+				<li><a href="http://mapmeld.appspot.com/olpcMAPolpc/page/new">By filling this form</a></li>
+				<li><a href="http://mapmeld.appspot.com/olpcMAP?add=marker">By adding a marker on the map</a></li>
+			</ol>
+		</div>
+		<div class="content-block-right">
+			<h5>Official &amp; mainstream news</h5>
+
+			<table class="table-list">
+				<thead>
+					<tr>
+						<th scope="col">TITLE </th>
+						<th scope="col">Source</th>
+						<th scope="col">Date</th>
+					</tr>
+
+				</thead>
+					<tbody>                                            <tr>
+                                                    <td><a href="http://feedproxy.google.com/~r/OneLaptopPerChildNews/~3/Ee0QY9rK0q8/can_one_laptop_per_child_save.html" target="_blank">Can One Laptop Per Child Save the World's...</a></td>
+                                                    <td>OLPC News</td>
+                                                    <td>Jan 12 2011</td>
+                                            </tr>
+                                                                                        <tr>
+
+                                                    <td><a href="http://blog.laptop.org/2011/01/11/fast-and-smart-challenge/" target="_blank">Fast and Smart Challenge: XO-1.5 vs XO-1.0</a></td>
+                                                    <td>OLPC Blog</td>
+                                                    <td>Jan 11 2011</td>
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://feedproxy.google.com/~r/OneLaptopPerChildNews/~3/oyw7zDijors/xo-175_faster_sugar_and_androi.html" target="_blank">XO-1.75: Faster Sugar and Android Support...</a></td>
+                                                    <td>OLPC News</td>
+
+                                                    <td>Jan 11 2011</td>
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://blog.laptop.org/2011/01/09/pixel-qi-as-eink-alternative/" target="_blank">Pixel Qi: an e-ink alternative with none...</a></td>
+                                                    <td>OLPC Blog</td>
+                                                    <td>Jan 9 2011</td>
+                                            </tr>
+
+                                                                                        <tr>
+                                                    <td><a href="http://blog.laptop.org/2011/01/08/keyboardtouchpad-freeze-and-fix/" target="_blank">Keyboard/Touchpad freeze and fix</a></td>
+                                                    <td>OLPC Blog</td>
+                                                    <td>Jan 8 2011</td>
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://feedproxy.google.com/~r/OneLaptopPerChildNews/~3/kLbdA_hy7mU/xo-175_laptop_innovation_olpc.html" target="_blank">XO-1.75 Laptop Innovation: OLPC Goes ARM...</a></td>
+
+                                                    <td>OLPC News</td>
+                                                    <td>Jan 7 2011</td>
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://feedproxy.google.com/~r/OneLaptopPerChildNews/~3/BDirMcLTFc8/what_wed_like_to_hear_from_nic.html" target="_blank">What we'd like to hear from Nicholas Negroponte,...</a></td>
+                                                    <td>OLPC News</td>
+                                                    <td>Jan 7 2011</td>
+
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://feedproxy.google.com/~r/OneLaptopPerChildNews/~3/UGDiGBZ7zhM/cautions_from_olpcs_experience.html" target="_blank">Cautions from OLPC's Experience in Marketing...</a></td>
+                                                    <td>OLPC News</td>
+                                                    <td>Jan 6 2011</td>
+                                            </tr>
+                                                                                        <tr>
+
+                                                    <td><a href="http://blog.laptop.org/2011/01/06/xo-1-75-touchscreens-coming/" target="_blank">XO-1.75 this summer: lower power, hopefully...</a></td>
+                                                    <td>OLPC Blog</td>
+                                                    <td>Jan 6 2011</td>
+                                            </tr>
+                                                                                        <tr>
+                                                    <td><a href="http://saigonolpc.wordpress.com/2011/01/05/3-ways-to-stick-to-your-goals/" target="_blank">hdr_mohrresults</a></td>
+                                                    <td>OLPC Planet</td>
+
+                                                    <td>Jan 5 2011</td>
+                                            </tr>
+                                            </tbody>			</table>
+			<a class="more" href="http://olpcmap.crowdmap.com/feeds">View More</a>
+		</div>
+		<!-- / right content block -->
+
+	</div>
+
+	<!-- /content blocks -->
+
+</div>
+<!-- content -->
+			</div>
+		</div>
+		<div id="coverwindow" style="display:none;position:fixed;margin-left:300px;top:100px;border:1px solid black;font-size:16pt;text-align:right;background-color:#333333;">
+			<input type="button" value="X" style="border:1px solid black;color:black;font-size:16pt;" onclick="closeCoverWindow();"/>
+			<br/>
+			<form id="signinform" style="width:100%;background-color:#ffffff; text-align:left; font-size:13pt;" action="http://mapmeld.appspot.com/olpcMAP/contact?id=you" method="POST">
+				E-mail <input id="emaillogin" name="login"/><br/>
+				<!--Password <input id="passwordlogin" type="password" name="password"/><hr/>-->
+				Message<br/><textarea name="message" width="300"></textarea>
+				<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Send"/>
+			</form>
+			<div id="infoform"></div>
+		</div>
+	</div>
+	</body>
+</html>

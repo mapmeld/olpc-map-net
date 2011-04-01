@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html>
+<head id="head">
+	<title>olpcMAP.net</title>
+	<meta name="viewport" content="initial-scale=1.0,user-scalable=no" />
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	<link rel='stylesheet' type='text/css' href='http://mapmeld.appspot.com/mapmeldStyles.css'/>
+	<script type='text/javascript'>
+var map,countries,people,orgs,infoWindow,geocoder,myPoints,facebookUser,specialRegion;
+function init(){
+	var myOptions = {
+		zoom:2,
+		scaleControl:true,
+		center:new google.maps.LatLng(30,-20),
+		mapTypeId:google.maps.MapTypeId.TERRAIN,
+		mapTypeControlOptions:{mapTypeIds:[google.maps.MapTypeId.TERRAIN,google.maps.MapTypeId.ROADMAP,google.maps.MapTypeId.SATELLITE, 'OSM']}
+	};
+	map = new google.maps.Map(getId("map"),myOptions);
+	var osmMapLayer = new google.maps.ImageMapType({
+		getTileUrl: function(coord, zoom) {
+			return "http://tile.openstreetmap.org/" +
+			zoom + "/" + coord.x + "/" + coord.y + ".png";
+		},
+		tileSize: new google.maps.Size(256, 256),
+		isPng: true,
+		alt: "OSM",
+		name: "OSM",
+		maxZoom: 19
+	});
+	map.mapTypes.set('OSM',osmMapLayer);
+
+	orgs=[
+		{name:"Moving Windmills",website:"http://williamkamkwamba.typepad.com",
+			pts:[
+				{name:"William Kamkwamba's Primary School",details:"1 XO,brought by William from TED in Arusha after telling the world about his homemade windmill.  Inspiring story.  <a href='http://williamkamkwamba.typepad.com/williamkamkwamba/2008/03/bringing-an-olp.html' target='_blank'>William's OLPC blog post</a>",pt:[-12.9829,33.6831],photo:"http://williamkamkwamba.typepad.com/williamkamkwamba/images/2008/03/21/img_0005.jpg"}
+			]},
+		{name:"OLPC Canada",website:"http://www.olpccanada.com",
+			ajax:[
+				{name:"OLPC Canada",pt:[55.786613,-98.885193],query:"/json?country=Canada",icon:"http://lib.store.yahoo.net/lib/yhst-91918294864082/canada-flag.gif"}
+			],
+			pts:[]},
+		{name:"OLPC Australia",website:"http://www.olpc.org.au",video:"http://youtube.com/watch?v=68p4kmKilyI",
+			ajax:[{name:"Sydney Center",pt:[-26.4312,121.6406],query:"/json?country=Australia"}],
+			pts:[]},
+		{name:"DBF OLPC India",website:"http://www.digitalbridgefoundation.org/",
+			pts:[
+				{name:"St. Anthony School,Dugawar,UP",details:"<a href='http://wiki.laptop.org/go/Oeuvre_des_pains' target='_blank'>School wiki page</a>",pt:[28.7168,78.5552],photo:"http://wiki.laptop.org/images/3/3c/OeuvreDesPains-Belgium-P1030833.JPG"},
+				{name:"Auroville,TN",details:"<a href='http://wiki.laptop.org/go/OLPC_India/Auroville' target='_blank'>School wiki page</a>",pt:[12.0093,79.8102],photo:"http://wiki.laptop.org/images/4/44/The_Joy_of_Exploration.JPG"},
+				{name:"Khairat School",pt:[18.917492,73.299408],details:"OLPC India's first pilot site<br/><br/><a href='http://wiki.laptop.org/go/OLPC_India/Khairat_school' target='_blank'>School wiki page</a>",photo:"http://wiki.laptop.org/images/b/b8/P1060290.JPG"},
+				{name:"Kikarwali",details:"India Foundation for Children Education and Care<br/><br/><a href='http://picasaweb.google.com/darshan2008/OLPCDeploymentProjectAtKikarwaliRajasthanIndiaOnMarch242010' target='_blank'>School Deployment Photos</a>",pt:[28.423199,75.60751],photo:"http://lh5.ggpht.com/_TKLjoqnmIB8/S6tmt8NyDhI/AAAAAAAAArA/6rZbCfBKDLQ/s512/DSC_0320.jpg"},
+				{name:"Parikrma Center for Learning,Bangalore",details:"30 XO laptops were deployed at this center,run by the <a href='http://www.parikrmafoundation.org' target='_blank'>Parikrma Foundation</a><br/><br/><a href='http://wiki.laptop.org/go/OLPC_India/DBF/Bangalore.Parikrma' target='_blank'>School-specific wiki page</a>",pt:[12.942348,77.585542],photo:"http://wiki.laptop.org/images/7/7b/Olpc-bangalore8.JPG"},
+				{name:"Aradhna School, Bangalore",details:"<a href='http://wiki.laptop.org/go/OLPC_India/DBF/Bangalore.Parikrma' target='_blank'>School wiki page</a>",pt:[12.885608,77.591865],photo:"http://wiki.laptop.org/images/6/66/Olpc-bangalore7.JPG"},
+				{name:"Holy Mother School,Nashik",details:"<a href='http://wiki.laptop.org/go/OLPC_India/Nashik' target='_blank'>School wiki page</a>",pt:[20.00574,73.748186],photo:"http://wiki.laptop.org/images/9/9e/P1010444.jpg"},
+				{name:"Mandal Parishad Primary School",details:"<a href='http://wiki.laptop.org/go/OLPC_India/DBF/Hyderabad-Mandal_Parishad_Primary_School' target='_blank'>School wiki page</a>",pt:[17.445319,78.38625],photo:"http://wiki.laptop.org/images/d/d5/DSC09954.JPG"},
+				{name:"Our Lady of Merces High School",details:"wiki page under development",pt:[15.277893,73.924255]}
+			]},
+		{name:"OLPC Mongolia",website:"http://www.laptop.gov.mn",
+			pts:[
+				{name:"Alag-Erdene soum",details:"one of three schools in Khovsgol district",pt:[50.1167,100.045]},
+				{name:"Khatgal soum",details:"one of three schools in Khovsgol district",pt:[50.4425,100.1603],photo:"http://farm4.static.flickr.com/3233/2915260637_f5f0375063.jpg",details:"Photo CC-BY Elana Langer"},
+				{name:"21 Ulanbaatar Schools",pt:[47.920484,106.925125],photo:"http://upload.wikimedia.org/wikipedia/commons/3/37/OLPC_Class_-_Mongolia_Ulaanbaatar.JPG"},
+				{name:"Khankh soum",details:"one of three schools in Khovsgol district",pt:[51.5023,100.6674]}
+			]},
+		{name:"OLPC Asia",website:"http://www.olpc.asia/index.html",
+			pts:[
+				{name:"Dujiangyan School,Sichuan",pt:[30.998285,103.619785],photo:"http://farm5.static.flickr.com/4138/4900464912_786490fed5_z.jpg",details:"Photo CC-BY OLPC"}
+			]},
+		{name:"Digital Literacy Project",website:"http://www.digiliteracy.org",
+			pts:[
+				{name:"Cambridge Friends School",details:"This XO pilot program is one of the first in the Boston area.  CFS is an independent K-8 Quaker school.  The XO is being introduced into the existing curriculum.",pt:[42.387,-71.1311],photo:"http://seeta.in/wiki/images/1/1e/DigiLit_at_CFS.JPG"},
+				{name:"Mission Hill School",details:"This pilot program is DigiLit's first collaboration with the Boston Public School System.  The program is designed to help this charter school's 4th and 5th grades grow to a 1:1 laptop ratio",pt:[42.3306,-71.0993],photo:"http://seeta.in/wiki/images/3/3d/DigiLit_at_Mission_Hill.jpg"},
+				{name:"Nicaragua Project",details:"In January 2010,DigiLit worked with the IADB to set up an XO laptop library at the Nicaraguan Deaf Association in Managua.  We are exploring how to close the education technology gap for these students.",pt:[12.1452,-86.2806],photo:"http://seeta.in/wiki/images/0/0d/DigiLit_in_Nicaragua_1.jpg"}
+			]},
+		{name:"Waveplace",website:"http://waveplace.org",
+			pts:[
+				{name:"Immokalee,Florida",
+				details:"Held in one of the poorest towns in the US,this pilot partnered Waveplace,One by One Leadership Foundation,and Collier County's Migrant Student Summer Program. Waveplace was featured on NPR's All Things Considered.<br/><a href='http://waveplace.org/locations/florida' target='_blank'>Link</a>",
+				pt:[26.4177,-81.413326],
+				photo:"http://waveplace.com/mu/waveplace/item/tp122.jpg"},
+				
+				{name:"Buenos Aires,Nicaragua",
+				details:"Our first pilot in Spanish,Waveplace worked with Campo Alegria to teach at arural elementary school without electricity. The government of Nicaragua was so impressed,they asked us to train 300 teachers throughout the country.<br/><a href='http://waveplace.org/locations/nicaragua' target='_blank'>Link</a>",
+				pt:[11.455799,-85.759277],
+				photo:"http://waveplace.com/mu/waveplace/item/tp166.jpg"},
+
+				{name:"St. John,US Virgin Islands",
+				details:"Waveplace started our journey at Guy H. Benjamin Elementary School in Coral Bay with twenty fourth graders who received the world's first 20 production XOs from OLPC. The pilot was a true learning experience for all.<br/><a href='http://waveplace.org/locations/usvi' target='_blank'>Link</a>",
+				pt:[18.360798,-64.74402],
+				photo:"http://waveplace.com/mu/waveplace/item/tp16.jpg"},
+				
+				{name:"St. Vincent Pilot",
+				details:"<a href='http://waveplace.com/mu/waveplace/item/tp53' target='_blank'>Link</a> - please help us add details",
+				pt:[13.235935,-61.180115],
+				photo:"http://waveplace.com/mu/waveplace/item/tp51.jpg"},
+
+				{name:"Port-au-Prince,Haiti",
+				details:"Our first pilot in Haiti,taught in French,Waveplace trained teachers and orphans at Mercy & Sharing Foundation's John Branchizio School in Port-au-Prince. It was here we first felt our mission have a clear effect.<br/><a href='http://waveplace.com/mu/locations/haiti' target='_blank'>Link</a>",
+				pt:[18.693001,-72.353511],
+				photo:"http://waveplace.com/mu/waveplace/item/tp81.jpg"},
+
+				{name:"Petite Rivere de Nippes,Haiti",
+				details:"Partnering with the American Haitian Foundation,Waveplace trained four local mentors and three from the island of Lagonav. Petite Rivere remains our longest active pilot location in Haiti,with laptop classes continuing to this day.<br/><a href='http://waveplace.com/mu/locations/haiti' target='_blank'>Link</a>",
+				pt:[18.473992,-73.23349],
+				photo:"http://waveplace.com/mu/waveplace/item/tp2.jpg"},
+
+				{name:"Haiti 2010",
+				details:"Waveplace translated our new courseware into Haitian Creole,then worked with OLPC and four local organizations to hold seven pilots in Lagonav,Petite Rivere,Williamson,and Leogane,the earthquake's epicenter.<br/><a href='http://waveplace.com/mu/locations/haiti' target='_blank'>Link</a>",
+				pt:[18.83709,-73.041916],
+				photo:"http://waveplace.com/mu/waveplace/item/tp55.jpg"},
+
+				{name:"Cambridge",
+				details:"<a href='http://waveplace.com/news/blog/archive/000850.jsp' target='_blank'>Link</a> - please help us add details",
+				pt:[42.371988,-71.086693],
+				photo:"http://waveplace.com/images/xoPrep.jpg"}
+			]},
+		{name:"OLPC Papua New Guinea",website:"http://www.olpc.org.pg/",video:"http://www.youtube.com/watch?v=woS3wDpoMiU",
+			pts:[
+				{name:"North Wahgi",pt:[-5.684658,144.49665],details:"250 XO laptops funded by PNGSDP",photo:"http://www.olpc.org.pg/images/stories/jim_taylor_primary1.jpg"},
+				{name:"Gaire",pt:[-9.676569,147.417297],details:"53 XO laptops,saturated 3rd grade class",photo:"http://wiki.laptop.org/images/d/d3/PNG-Nov08-2.jpg"},
+				{name:"Dreikikir",pt:[-3.57516,142.76946],details:"Dreikikir Admin Primary School is located in East Sepik Province,near Wewak. This school is participating in the EU-funded Improvement of Rural Primary Education Facilities (IRPEF) project,based in Madang. The IRPEF is collaborating with the Department of Education and OLPC Oceania to implement the trial."}
+			]},
+		{name:"OLPC Alabama",website:"http://wiki.laptop.org/go/OLPC Birmingham",video:"http://youtube.com/watch?v=inxOg-dt6rw",
+			pts:[
+				{name:"Birmingham",pt:[33.5271,-86.8229],details:"15000 XOs deployed? <a href='http://blog.laptop.org/2010/05/21/updates-from-alabama'>Latest update</a>",photo:"http://blog.laptop.org/wp-content/uploads/2010/05/westend-camp.jpg"}
+			]},
+		{name:"OLPC South Carolina",website:"http://www.laptopsc.org",video:"http://youtube.com/watch?v=y3VLAUtv9Rw",
+			ajax:[
+				{name:"South Carolina",pt:[33.767732,-80.507812],query:"/json?region=SouthCarolina"}
+			],
+			pts:[
+			]},
+		{name:"Gureghian Family",
+			pts:[
+				{name:"Chester Community Charter School",pt:[39.847031,-75.357971],details:"Deployment of 1400 laptops for students grades 3-8<br/><br/><a href='http://webcache.googleusercontent.com/search?q=cache:0yNNTyovLIcJ:wiki.laptop.org/images/9/9a/CCCS_12.10.08_Final.doc+olpc+chester&cd=1&hl=en&ct=clnk&gl=us' target='_blank'>Project Page</a>"}
+			]},
+		{name:"Amagezi Gemaanyi Youth Association",website:"http://amagezigemaanyi.blogspot.com",
+			pts:[
+				{name:"Lubya Youth Education Centre",details:"Community center in Kampala; received XO laptops through Contributors Program project by USC",pt:[0.3289,32.5527],photo:"http://1.bp.blogspot.com/_3doFkXas3vs/TEy34ipYQbI/AAAAAAAABkU/XlMIvb3KrxA/S390/agya-olpc4.jpg"}
+			]},
+		{name:"SEETA",website:"http://wiki.sugarlabs.org/go/Sugar_on_a_Stick_in_Delhi_India",
+			pts:[
+				{name:"Veda Vyasa DAV School",details:"Sugar on a Stick deployment in Delhi,India<br/>Our goal is to measure student learning improvements - students have a digital portfolio of their work and achievements. We will be publishing a case study in fall 2010 with a professor in Boston University's School of Education<br/><a href='http://theteamgoestoindia.wordpress.com' target='_blank'>Blog</a>",pt:[28.6384,77.0617]}
+			]},
+		{name:"OLE Nepal",website:"http://www.olenepal.org",video:"",
+			pts:[],
+			ajax:[{name:"OLE Nepal",pt:[27.3728,85.1897],query:"/json?country=Nepal"}]},
+		{name:"TecnoTzotzil",website:"http://sites.google.com/tecnotzotzil",
+			pts:[
+				{name:"4 San Cristobal De Las Casas Schools",details:"SoaS deployment with 44 students,using Intel Classmate PCs. Photo CC-BY Jose I. Icaza",pt:[16.7404,-92.6307],photo:"http://farm3.static.flickr.com/2600/3979066854_e9fdf5c530.jpg"}
+			]},
+		{name:"Educa Libre",website:"http://educalibre.cl",
+			pts:[
+				{name:"Florence Nightingale School",details:"SoaS deployment with 25 K-3 students in Macul,Chile. Acer netbooks and some PCs",pt:[-33.4871,-70.6048],photo:"http://educalibre.cl/wp-content/uploads/2010/07/alumno_piloto_memorice3.jpg"}
+			]},
+		{name:"United Action for Children",website:"http://www.unitedactionforchildren.org/",
+			pts:[
+				{name:"UPenn OLPCorps",details:"Students and teachers trained to use Scratch,Write,and more<br/><br/><a href='http://upennuac.blogspot.com/' target='_blank'>Blog</a>",pt:[4.061536,9.448242],photo:"http://1.bp.blogspot.com/_iSJqZVkttQc/SpM7e6-Qh_I/AAAAAAAAACc/YLR726R5GP0/s320/5848_237169645060_875880060_8375546_6766219_n%5B1%5D.jpg"}
+			]},
+		{name:"Ethiopia Engineering Capacity Building",website:"http://www.ecbp.biz/",
+			pts:[
+				{name:"OLPCorps:Dalarna U. and Royal IT",details:"<br/><br/><a href='http://wiki.laptop.org/go/OLPCorps_DKTH_ETHIO_PROPOSAL' target='_blank'>Wiki Page</a>",photo:"",pt:[7.939556,39.122314]}
+			]},
+		{name:"OLPCorps",
+			pts:[
+				{name:"OLPCorps:Harvard and MIT",pt:[-24.20689,16.167669]}
+			]},
+		{name:"GMin",website:"http://www.gmin.org/",
+			pts:[
+				{name:"OLPCorps Sahn Malen",details:"Princeton University and University of Maryland students<br/><br/><a href='http://olpcsm.blogspot.com/' target='_blank'>Wiki Page</a>",photo:"http://3.bp.blogspot.com/_I7lfwYcs8Jo/Sn871AI5K6I/AAAAAAAABpc/gzJ2XA-bed8/s400/DSC02252.JPG",pt:[8.063479,-11.42252]}
+			]},
+		{name:"ONE",website:"http://www.one.org",video:"http://www.youtube.com/watch?v=lPUXj7EqGWw",
+			pts:[
+				{name:"OLPCorps Senegal",details:"Students from U. Miami and U. Minnesota teamed up for this deployment<br/><br/><a href='http://www.one.org/blog/?p=7703' target='_blank'>Report from ONE.org</a><br/><br/><a href='http://africaxo.blogspot.com/' target='_blank'>Blog</a>",photo:"http://farm4.static.flickr.com/3500/3833004781_f0533a4c32.jpg",pt:[14.26638,-16.34697]}
+			]},
+		{name:"Intenge Development Foundation",website:"http://olpcorpsnamibiangoma.wordpress.com/idf-ngo-community-based-organization-in-caprivi/",
+			pts:[
+				{name:"OLPCorps Namibia-Ngoma",details:"<br/><br/><a href='http://olpcorpsnamibiangoma.wordpress.com/' target='_blank'>Blog</a>",pt:[-20.131298,19.510431]}
+			]},
+		{name:"One Here One There",website:"http://onehereonethere.org",
+			pts:[
+				{name:"OLPCorps IU",details:"Students from Indiana University. Installed an electric generator and ran a short student newspaper-writing project.<br/><br/><a href='http://2009iuohot.blogspot.com/' target='_blank'>Blog</a>",pt:[-24.153019,29.351349]}
+			]},
+		{name:"OLPCorps",
+			pts:[
+				{name:"OLPCorps:Niger",details:"University of Lagos,Royal Holloway University of London,and University of Salford students",pt:[8.762429,5.799923]},
+				{name:"OLPCorps:Sierra Leone",details:"Tulane University and UC Davis students",pt:[8.760054,-12.572136]},
+				{name:"OLPCorps:U of Education,Winneba",pt:[6.14128,-1.670179]},
+				{name:"OLPCorps:U. Kinhasa",pt:[-1.710866,28.959188]},
+				{name:"OLPCorps:U of Ibadan",details:"This project is targeted at empowering people with disabilities by improving their access to technology.<br/><br/><a href='http://abledisableinxo.blogspot.com' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_HbCc4VF-oTw/Splp_fs_JvI/AAAAAAAAADs/xI-fu0xLxWw/s320/teaching.jpg",pt:[9.277909,10.195785]},
+				{name:"OLPCorps:CUNY Baruch",pt:[8.407168,0.087891]},
+				{name:"OLPCorps:Soweto",details:"Deployment with detailed updates for the Global Post<br/><br/><a href='http://oplokhii.blogspot.com' target='_blank'>Blog</a>",pt:[-26.194877,27.993164],photo:"http://3.bp.blogspot.com/_jBm2wqTTQu8/SpX-ytitHwI/AAAAAAAAAQ4/PnIoAZ7bGME/s320/IMG_9629.JPG"},
+				{name:"OLPCorps:Mauritania",details:"Students from Cornell University",pt:[14.349548,-16.918945]},
+				{name:"OLPCorps:Ungana Foundation",details:"Students from Utah State University supported the Ungana Foundation's effort to extend and support OLPC Rwanda<br/><br/><a href='http://unganafoundation.blogspot.com/'>Blog</a>",photo:"http://1.bp.blogspot.com/_EkMPu5bJnVU/Sqav0piu-cI/AAAAAAAAAPI/C3ZKbTbPpFA/s400/P1010406.JPG",pt:[-1.83406,29.486618]},
+				{name:"OLPCorps:Heritage Nigeria",details:"Students from Texas A&M University<br/><br/><a href='http://olpcheritagenigeria.blogspot.com/' target='_blank'>Blog</a>",pt:[6.509768,3.537598],photo:"http://2.bp.blogspot.com/_ytQa4_LpsOk/SnfG0uka1-I/AAAAAAAAAFk/A5D3QoWvDkQ/s320/IMG_1478.JPG"},
+				{name:"OLPCorps:Zimbabwe",details:"Students from Macalester College,Midlands State University,and University of Zimbabwe - installed solar and then national grid power<br/><br/><a href='http://olpcorpszimbabwe09.blogspot.com' target='_blank'>Blog</a>",pt:[-17.137838,31.072083]},
+				{name:"OLPCorps:Madagascar",details:"Students from GWU and U Maryland<br/><br/><a href='http://ampitso.wordpress.com/' target='_blank'>Blog</a>",photo:"http://ampitso.smugmug.com/photos/638764729_UCofq-M.jpg",pt:[-13.57024,49.306641]},
+				{name:"OLPCorps:Laval University",details:"<br/><br/><a href='http://collabo.fse.ulaval.ca/olpc/' target='_blank'>Website</a>",photo:"http://collabo.fse.ulaval.ca/olpc/images/teach.jpg",pt:[3.387307,12.877007]},
+				{name:"OLPCorps:Tanzania",details:"Students from Tumaini University.<br/><br/>The school was connected to the internet<br/><br/><a href='http://mot-tumaini.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_z6OVkOJNvTQ/SpvI0dyRxGI/AAAAAAAAAO4/ukhEnWkZXEg/s320/IMG0011A.jpg",pt:[-7.794677,35.690117]},
+				{name:"OLPCorps:Vutakaka",details:"Students from U. Washington and the New School<br/><br/><a href='http://vutakakaolpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_C_wadBS6-ek/SmX5aiSypyI/AAAAAAAAIzg/XKbSjGgYCoo/s320/100_0057.jpg",pt:[-3.513421,39.835739]},
+				{name:"OLPCorps:Kampala",details:"Still operating (though not online). Supported by MIT and Wellesley College<br/><br/><a href='http://uganda-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://2.bp.blogspot.com/_Sm-Wjgh0ZWk/SlCq2EOvw2I/AAAAAAAAABU/Xm_8bmDF7tY/s320/olpc_kps_10.JPG",pt:[0.29663,32.640381]},
+				{name:"OLPCorps:GTech",details:"Students from Grahamstown and Gettysburg <a href='http://picasaweb.google.com/aimeegeorge/PicsFromGTECHSouthAfrica?feat=email#' target='_blank'>Photos Page</a><br/><br/><a href='http://gtech-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://lh3.ggpht.com/_7PSu0kxiZPQ/SrrntMYgpLI/AAAAAAAABFY/41saWNP1JNw/s640/P1080072.JPG",pt:[-33.315037,26.548634]},
+				{name:"OLPCorps:Kwame Nkrumah U.",pt:[7.227441,-0.747414]}
+			]}
+	];
+	myPoints=[];
+	myPoints.push({name:"Sao Tome e Principe",id:"341003",pt:[0.486139,6.580811],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"STEP UP OLPC, formed under Sao Tome e Principe Union for Promotion (STeP UP) to develop an after-school laptop program for teachers and students at a former OLPCorps school. Planning to grow school and country-wide. In summer 2010, Waveplace taught Etoys and digital storytelling in  Portuguese.<br/><a href='http://bethstepsup.blogspot.com/' target='_blank'>Link</a>",photo:"http://3.bp.blogspot.com/_Emz9jtQEtDc/TECgaBCgM7I/AAAAAAAACrs/G8r0OW_1ono/s400/DSC05559.JPG",album:"",group:"STEP UP OLPC",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPoints.push({name:"Columbus School for Girls OLPC Service Learning Project",id:"336002",pt:[39.8990789438,-82.9516601562],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"High School students take a year-long course to prepare to teach Etoys and Sugar to young children in remote places. A service trip is the capstone of the course, where they deliver the laptops and teach their lessons. (<a href=\"http://csgolpc2011.weebly.com\">CSG OLPC Blog</a>)",photo:"http://olpcsf.org/CommunitySummit2010/images/people/christineMurakami.jpg",album:"",group:"Columbus School for Girls",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPoints.push({name:"Fundación Zamora-Terán",id:"346001",pt:[12.1552803883,-85.8529043715],icon:"http://google-maps-icons.googlecode.com/files/industrialmuseum.png",details:"<div dir=\"ltr\">La Fundación Zamora-Terán es una organización sin fines de lucro que nace a raíz de la Responsabilidad Social Empresarial del Grupo Financiero LAFISE BANCENTRO. <br><br>A través de la fundación se impulsa el programa Una Computadora por Niño, el cual tiene como objetivo primordial que cada niño de edad escolar en Nicaragua tenga su propia computadora.</div>",photo:"http://farm5.static.flickr.com/4056/4460832775_37e0513af1.jpg",album:"",group:"http://www.fundacionzt.org",icon:"http://google-maps-icons.googlecode.com/files/industrialmuseum.png"});
+	myPoints.push({name:"Programa Joaquín Víctor Gonzales",id:"367001",pt:[-29.6097051133,-66.3584853492],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"<div dir=\"ltr\">El programa está localizado institucionalmente en todas las escuelas de Nivel Primario Urbanas, Rurales y Especiales del Sistema Educativo de La Rioja en su gestión pública y privada, provincial y municipal.<br>Se entrega una computadora laptop XO 1.5 de OLPC por cada niño que asista a la escuela primaria en todo el territorio de la Provincia de La Rioja para efectivizar un Proyecto Educativo de transformación de la enseñanza y el aprendizaje escolar.<br>La población objetivo está constituida por los 60.000 alumnos/as, de escuelas primarias comunes, de escuelas de contexto rural con sistemas de plurigrado y niveles equivalentes de educación especial, con sus correspondientes docentes.</div>",photo:"http://reactivated.net/weblog-content/20100419-larioja.jpg",album:"",group:"http://educacion.itsel.com",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPoints.push({name:"Plan Ceibal",id:"366001",pt:[-34.8496004542,-56.2058016082],icon:"http://google-maps-icons.googlecode.com/files/animals.png",details:"El Plan CEIBAL es una iniciativa socio-educativa que busca promover la inclusión digital, con el fin de disminuir la brecha digital existente respecto a otros países y de los ciudadanos del país entre sí, posibilitando un mayor y mejor acceso a la educación y a la cultura.Se trata de proveer de una computadora personal móvil a cada niño, niña y maestro de las escuelas públicas de nuestro país, para lograr los objetivos propuestos.Se diferencia de esfuerzos anteriores porque su objetivo no es sólo dotar de equipamiento y accesibilidad a los centros, sino a todos los escolares y maestros, quienes harán uso de sus dispositivos personales tanto dentro de la institución como en sus hogares. Esto establece una relación de 1 a 1 entre sujetos y dispositivos y también facilita la participación familiar y social.Se otorga también el mantenimiento de los equipos y la conectividad en el centro, lo que garantiza su uso, así como las acciones para promover el desarrollo profesional docente.",photo:"http://www.fedaro.info/wp-content/uploads/2008/01/ceibal_uy.jpg",album:"",group:"http://www.ceibal.edu.uy",icon:"http://google-maps-icons.googlecode.com/files/animals.png"});
+	myPoints.push({name:"Plan Ceibal",id:"365001",pt:[-34.8496004542,-56.2058016082],icon:"http://google-maps-icons.googlecode.com/files/animals.png",details:"<div dir=\"ltr\">El Plan CEIBAL es una iniciativa socio-educativa que busca promover la inclusión digital, con el fin de disminuir la brecha digital existente respecto a otros países y de los ciudadanos del país entre sí, posibilitando un mayor y mejor acceso a la educación y a la cultura.</div>",photo:"http://news.uy.buscojobs.com/wp-content/uploads/2009/10/xo-plan-ceibal-3.jpg",album:"",group:"http://www.ceibal.edu.uy",icon:"http://google-maps-icons.googlecode.com/files/animals.png"});
+	myPoints.push({name:"Institución Educativa Rural Marina Orth",id:"348001",pt:[6.24932629218,-75.5860977116],icon:"http://google-maps-icons.googlecode.com/files/postal.png",details:"<div dir=\"ltr\">El Proyecto educativo VUELA-OLPC, primero en Colombia que entrega una laptop a cada uno de los estudiantes de primaria de la Institución Educativa Rural Marina Orth, utiliza esta poderosa herramienta de aprendizaje para posibilitarle a estos niños y niñas su acceso real a una formación actualizada y competitiva. Diseñada colaborativamente por expertos del mundo académico y de la industria, esta laptop combina creaciones de hombres y mujeres talentosas en todos los campos. La armoniosa y funcional máquina pretende que los niños más pobres del planeta -entre los que deben incluirse los estudiantes de Belén Aguas Frías- den un salto de decadas de desarrollo inmediato al acceder a aprendizajes con más calidad y mejores contenidos.</div>",photo:"http://cdn.alt1040.com/files/2010/07/Colombia-OLPC-420x236.jpg",album:"",group:"http://fundacionmarinaorth.org",icon:"http://google-maps-icons.googlecode.com/files/postal.png"});
+	myPoints.push({name:"Nosy Komba",id:"339002",pt:[-13.4459068173,48.3472189862],icon:"http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png",details:"160 XO laptops, 1 XS server, 1 eBook title in malagasy",photo:"http://4.bp.blogspot.com/_fifzucKMCms/TAnvsEUoQ6I/AAAAAAAAATM/ADI--T9Jmrs/s1600/P1010020 (2).JPG",album:"",group:"OLPC France",icon:"http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png"});
+	myPoints.push({name:"Adam Holt",id:"364001",pt:[42.3650216211,-71.0771560669],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Adam Holt is the community support manager at One Laptop per Child. He is the resource, the mother hen and the knight in shining armor for OLPC deployments worldwide. He also connects members of various deployments to their most potent resource yet-- each other. Adam is the friendly face on many of OLPC's mailing lists, chat rooms and message boards.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/adamHolt.jpg",album:"",group:"OLPC",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Dr. Sameer Verma",id:"363001",pt:[37.7764464618,-122.410649164],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Dr. Sameer Verma is an Associate Professor of Information Systems. His research focuses on the diffusion and adoption of innovative technologies. In addition to his academic work, Dr. Verma has worked with companies in consulting capacity in the areas of content analysis, management and delivery. He has helped start OLPC volunteer efforts in San Francisco, Jamaica, Armenia and India. He is the chief organizer of the OLPC-San Francisco Bay Area volunteer community (http://olpcsf.org).",photo:"http://olpcsf.org/CommunitySummit2010/images/people/sverma.jpg",album:"",group:"San Francisco State University",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Auckland volunteers",id:"362001",pt:[-36.8219471411,174.754135062],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Testing, translation, deployment support for olpc and Sugarlabs - XO-1.0s, XO-1.5s, SoaS",photo:"http://farm5.static.flickr.com/4092/5003303411_fd1d0e52ec.jpg",album:"",group:"olpc Aotearoa",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Wellington volunteers",id:"360001",pt:[-41.2731800691,174.798080375],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Testing, translation and deployment support for OLPC and Sugarlabs - XO-1.0s, XO-1.5s, SoaS",photo:"http://wiki.laptop.org/images/f/f4/NZTesters-photo5.jpg",album:"",group:"OLPC Aotearoa",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Nick Doiron",id:"359001",pt:[40.443956214,-79.9400535371],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Nick Doiron is a programmer and curriculum editor for the Kasiisi Project and DigiLiteracy.org He works with a variety of OLPC activities and recently taught maps, sensors, and programming to 250 students in rural Uganda ( <a href=\"http://MapUganda.blogspot.com\">MapUganda.blogspot.com</a> ). He hopes to share strategies for pushing the limits of the XO and preparing students to take part in designing the future of technology.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/nickDoiron.jpg",album:"http://mapuganda.blogspot.com/2010/08/super-photo-update.html",group:"olpcMAP",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"OLPC Haiti",id:"337002",pt:[18.6051007348,-72.3045349121],icon:"http://google-maps-icons.googlecode.com/files/places-visited.png",details:"Haiti, the poorest country in the Caribbean, received over 10,000 XOs from the Give One Get One program and additional XOs from the Haiti government and from the Inter-American Development Bank. In all, 13,700 XOs have been purchased for use by students and teachers, and hundreds more have been deployed in smaller pilots by independent NGOs.",photo:"http://erniesuggsharvard.files.wordpress.com/2008/12/olpc.jpg",album:"",group:"OLPC",icon:"http://google-maps-icons.googlecode.com/files/places-visited.png"});
+	myPoints.push({name:"Dinmohamed Abdimomunov",id:"357001",pt:[43.2680589915,76.9215543916],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"OLPC SF Summit 2010 participant",photo:"http://farm2.static.flickr.com/1316/5112199342_7e759f88e6.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Paraguay Educa",id:"356001",pt:[-25.3036237345,-57.6441975542],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"Paraguay Educa es una organización sin fines de lucro que impulsa el programa mundial",photo:"http://farm4.static.flickr.com/3345/3471958780_b4084c04f9.jpg",album:"",group:"http://www.paraguayeduca.org/",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPoints.push({name:"Mike Lee",id:"343001",pt:[39.0393981051,-77.0543542778],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Mike Lee founded the OLPC Learning Club DC with Wayan Vota before the first OLPC Give One Get One promotion in 2007 as a way of serving the local users of the XO-1 laptop. Meeting monthly ever since at the Arlington Career Center and Gallaudet University, the club has spun off a repair center, laptop lending library and Sugar Labs DC. The club has also organized Scratch Days, Turtle Art Days and book sprints. Mike has lately been partnering with the Lubuto Library Project to deploy OLPC XO laptops and Etoys language literacy content in libraries being built in Zambia to serve street children. As a long time corporate sponsor liaison to the MIT Media Lab through his day job at a large non-profit in D.C., Mike has answered requests directly from Nicholas Negroponte to do demos of the XO laptop and Sugar to congressional staffers, embassy personnel and media. Quite often, Mike's 6 1/2-year-old daughter Cici helps to promote OLPC in photos and has demoed the laptops at local festivals and to Aljazeera Television. Cici has recently joined the Kidsteam at the Human-Computer Interface Laboratory in College Park, MD.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/mikeLee.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Una Laptop por Niño",id:"355001",pt:[-12.0826342478,-77.0785733508],icon:"http://google-maps-icons.googlecode.com/files/bookstore.png",details:"El Programa Una Laptop por Niño  responde a la demanda de calidad educativa y de equidad a través de la integración de las tecnologías de información y comunicación (TIC) en el proceso educativo desde la identidad nacional, en especial, en aquellas zonas con mayor índice de pobreza, altas tasas de analfabetismo, exclusión social, dispersión de la población y bajas tasas de concentración de población escolar, para contribuir a la equidad educativa en las áreas rurales. El programa busca mejorar la calidad de la educación, para lo cual se va a modernizar y potenciar el rol de sus docentes.",photo:"http://www.perueduca.edu.pe/olpc/archivos/testi_foto1a.jpg",album:"http://www.perueduca.edu.pe/olpc/OLPC_Home.html",group:"Una Laptop por Niño Peru",icon:"http://google-maps-icons.googlecode.com/files/bookstore.png"});
+	myPoints.push({name:"Kurt Maier",id:"345001",pt:[39.7689042849,-86.1449960354],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Kurt has over ten years of experience. Some of it is in installing cutting-edge hardware and surveillance equipment using generator power in a war zone. Some of it is fixing outdated field telephones. Most of it is in administering systems, and that's what he currently does for his employer, Six Feet Up. In his free time, Kurt is a proponent of free and open source software and has contributed to the development of several open source projects. He's also devoted many hours to the One Laptop per Child project, ever since the very first Give One Get One opportunity. Hoping to learn more about this amazing project, he signed up for several mailing lists, and eventually joined the volunteer Support Gang. He's been there ever since.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/KurtMaier.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Programa de Educación y Cultura Digital TELMEX",id:"344001",pt:[19.3959277687,-99.2280482048],icon:"http://google-maps-icons.googlecode.com/files/pagoda.png",details:"OLPC es un proyecto educativo creado por la asociación One Laptop Per Child (OLPC) con el fin de contribuir al desarrollo educativo de los países emergentes. En México lo adopta Telmex poniendo al alcance de niños y niñas las nuevas tecnologías de la información y la comunicación (TIC).<br>Las acciones que ambas asociaciones desarrollan, en el marco de este proyecto, promueven dar acceso al mayor número de niños mexicanos a los equipos tecnológicos llamados XO, buscando así abatir la brecha digital y brindar oportunidades de desarrollo y educación para los participantes.<br>Estamos conscientes de que en el momento actual, brindar elementos e instrumentos para la inclusión digital de los estudiantes, es un elemento fundamental para un desarrollo educativo integral.<br><br>El proyecto OLPC México, en tanto pretende mejorar la calidad de la educación en México, buscará asociarse con otras instancias, tanto gubernamentales como del mundo académico y de la sociedad civil, para el mejor desarrollo del mismo.",photo:"http://www.mochiladigitaltelmex.com.mx/olpc/images/thumb/d/d0/Olpc-clase.jpg/250px-Olpc-clase.jpg",album:"http://www.mochiladigitaltelmex.com.mx/olpc/index.php/Portada",group:"TELMEX",icon:"http://google-maps-icons.googlecode.com/files/pagoda.png"});
+	myPoints.push({name:"Samoa",id:"354001",pt:[-13.4740726024,-172.365554293],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"Two schools on Savaii with 100 laptops being used at years 4, 5, and 6.http://wiki.laptop.org/go/OLPC_Samoa",photo:"http://farm5.static.flickr.com/4102/4941064038_e05f081484_b.jpg",album:"http://www.flickr.com/photos/tabitharoder/sets/72157624915482916/",group:"olpc Oceania",icon:"http://google-maps-icons.googlecode.com/files/school.png"});
+	myPoints.push({name:"Niue",id:"347001",pt:[-19.0544450068,-169.860366545],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Full deployment to all children on Niue from early childhood through to secondary schoolhttp://wiki.laptop.org/go/OLPC_Niue",photo:"",album:"",group:"olpc Oceania",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Cherry Withers",id:"341002",pt:[37.3213681349,-121.897015437],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Describe this place or person",photo:"http://farm5.static.flickr.com/4086/5111598543_6dc80ebeab.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Cook Islands",id:"349001",pt:[-19.8699680444,-157.702503084],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"Trial in high schoolhttp://wiki.laptop.org/go/OLPC_Cook_Islands",photo:"http://wiki.laptop.org/images/8/82/School.jpg",album:"",group:"olpc Oceania",icon:"http://google-maps-icons.googlecode.com/files/school.png"});
+	myPoints.push({name:"Niue",id:"353001",pt:[-19.0544450068,-169.860366545],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"Full deployment to all children on Niue from early childhood through to secondary schoolhttp://wiki.laptop.org/go/OLPC_Niue",photo:"http://wiki.laptop.org/images/b/b3/More_laptops.jpg",album:"",group:"olpc Oceania",icon:"http://google-maps-icons.googlecode.com/files/school.png"});
+	myPoints.push({name:"Pablo Flores",id:"350001",pt:[-34.8906554926,-56.1659800545],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Pablo Flores Chiarelli. Computer Engineer. Has been involved with Plan Ceibal since its inception, giving technical support to LATU and Uruguay's education team during the initial stages of deployment of the plan, describing his experiences at http://proyecto-ceibal.blogspot.com. Pablo seeded the \"Flor de Ceibo\" project, working with dozens of teachers and hundreds of university students providing support for Plan Ceibal's activities. Founding member of ceibalJAM!, a community of free educational software development. Member of RAP Ceibal (volunteer support network). Active member of the community that's been built around OLPC, Pablo also participates in extensive meetings and independent studies on 1:1 experiences. He is currently completing a book compilation for UNESCO, on the social mobilization caused by one computer per child projects.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/pflores.png",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Maroantsetra, Madagasikara OLPC",id:"351001",pt:[-15.4455724152,49.7145084316],icon:"http://google-maps-icons.googlecode.com/files/fossils.png",details:"Describe this place or person",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/fossils.png"});
+	myPoints.push({name:"Steven M. Parrish",id:"368001",pt:[35.6269474011,-78.6403976587],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Project Manager for Dextrose.wiki.sugarlabs.org/go/Dextrose",photo:"http://farm5.static.flickr.com/4017/5149431462_8ace33d5ec_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Morgan  Ames",id:"387001",pt:[-25.2964298,-57.6468045],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Morgan Ames is a PhD candidate in Stanford's Department of Communication. In her research, Morgan investigates the social meanings of new media technologies. Her dissertation work involves the technological dreams engendered by the One Laptop per Child (OLPC) project's \"XO\" laptop, particularly in the pilot deployment of 9000 laptops in Paraguay and the country-wide deployment of 400,000 laptops in Uruguay. She has been an OLPC volunteer in Paraguay since June 2010. (see http://morganya.org for more information).",photo:"http://olpcsf.com/CommunitySummit2010/images/people/MorganGAmes.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Bruce  B",id:"369001",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Founder - Green WiFi and Member - Engineers without Borders",photo:"http://farm2.static.flickr.com/1215/5111596837_5939d6d28d_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Arlene  B",id:"406002",pt:[18.1850507,-77.3947693],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"University of the West Indies,Jamaica",photo:"http://farm2.static.flickr.com/1182/5112197480_6b47d3865e_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Raj  B",id:"372001",pt:[39.1355461075,-121.635910743],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Barbara  Barry",id:"392001",pt:[42.3750997,-71.1056157],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Barbara Barry is the Director of Learning, Middle East, at the OLPC Foundation. She is an interdisciplinary designer who specializes in creating new technologies and social programs for education and health care. She works with the education and well being of children affected by war, poverty, and natural disasters.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/BarbaraBarry.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Aaron  B",id:"414001",pt:[40.0757384,-74.4041622],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Grant  Bowman",id:"366002",pt:[37.8438278625,-122.123085033],icon:"http://mapmeld.appspot.com/xo-red.png",details:"OLPC SF,Fedora,Ubuntu, Toaster project, Fedora Ambassador",photo:"http://farm2.static.flickr.com/1424/5111595969_594f188e6d_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Mark  Burnett",id:"339003",pt:[51.5162,-0.12053],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Head of IT Strategy, Bearing Point Consulting",photo:"http://mapmeld.appspot.com/mark_burnett.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Javier  C",id:"398003",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Javier Cardona is CEO and Founder of cozybit. He started dissecting and disassembling electronic devices while still a child in his home town of Barcelona, Spain. Hoping to learn how to put them together again, he acquired a Telecommunications Engineering degree from UPC, Spain, and a Master of Engineering degree from Alari, Switzerland. He has since developed embedded software in France, the US, UK and Switzerland. Javier also completed an Executive Program for Entrepreneurship at Babson College and the Executive Program for Growing Companies at Stanford University. It was while working as a research fellow at the International Computer Science Institute at Berkeley that he became aware of the impact open source could have on the embedded software market. He began to envision a software engineering company that would help electronic equipment manufacturers take advantage of open source in their designs â€“ thus, cozybit was born.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/JavierCardona.png",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Misha  C",id:"401001",pt:[50.8465417,4.3518131],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Director of 2.0 Strategy,OLPC Europe",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Stacey  A C",id:"351002",pt:[37.8664679265,-122.298859781],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Philanthropy Chair | Theta Tau,UC Berkeley ",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Jessica  Curtis",id:"345003",pt:[40.5834379,-74.1495875],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Twitterer at OLPC-NYC",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Walter  d B",id:"405001",pt:[50.8465417,4.3518131],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"CEO of One Laptop per Child Europe",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Bethany  D",id:"376001",pt:[37.9014913294,-122.039894612],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Daniel  Drake",id:"379001",pt:[51.9767,-0.2292],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Daniel has worked as an OLPC contractor and volunteer on 8 OLPC country deployments. Most of his experience is on the logistics and technical fronts. He has also worked on the OLPC engineering team as an intern and contractor, developing the OLPC software releases and the XO-1.5 laptop. He is currently working on ongoing maintenance of the XO-1 and XO-1.5 software releases.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/DanielDrake.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Ricardo  E",id:"402001",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"MA,Education,Instructional Technologies",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Timothy  F",id:"361002",pt:[40.8617302,-78.7303073],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"Executive Director,Waveplace Foundation. Timothy Falconer is the Executive Director of the Waveplace Foundation. In 2007, Tim started Waveplace after a few serendipitous meetings in the Virgin Islands. Tim plans logistics, creates courseware, and speaks at CIT events. Prompted by the success of Waveplace, computer pioneer Alan Kay chose Tim to lead Squeakland Foundation during its founding year. Tim also runs Immuexa Corporation, a software and website company founded in 1998.",photo:"http://farm5.static.flickr.com/4020/5149361384_5902e3d8ab_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Luke  Faraone",id:"382001",pt:[38.8556681,-77.0601552],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Luke Faraone is a long time supporter and advocate of OLPC. Helping establish community support in 2007, he now manages infrastructure for OLPC and Sugar Labs on a volunteer basis. In addition to operating the OLPC DC Repair Center, he is a founding member of the OLPC Learning Club DC. Over the past summer, he worked with a global team to port Sugar to the current release of Ubuntu. In the wider open source world, Luke is a Ubuntu MOTU (\"Master of the Universe\") and Debian Developer. Locally, Luke manages the CompSci / CompEng lab at his high school, and mentors in Computer Programming at the middle school level.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/LukeFaraone.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Richard  G",id:"384001",pt:[37.2884726407,-122.003654575],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Andreas  G",id:"410001",pt:[9.0300104,38.7399924],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"NECSI",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Linda  G",id:"387002",pt:[37.2884726407,-122.003654575],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Maureen  H",id:"349002",pt:[37.2884726407,-122.003654575],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Jason  H",id:"370001",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Assistant Professor of Management",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Cheryl  H M",id:"365002",pt:[37.2884726407,-122.003654575],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Robert  H",id:"349003",pt:[37.6897013448,-122.34006429],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"",photo:"",album:"",group:"OLPC-SF",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Bernie  Innocenti",id:"354003",pt:[42.3750997,-71.1056157],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Sugar Labs / OLPC / FSF. Bernie Innocenti is a firmware engineer, member of the Free Software Foundation and founder of Develer, a high-tech consulting business based in Italy. Three years ago, Bernie joined One Laptop Per Child (OLPC) in Boston as a volunteer developer and later co-founded Sugar Labs, a community-driven NGO promoting world-wide access to open education through Sugar, the constructionist computing environment for young learners which powers the XO laptops. Bernie has been working on-site with several OLPC deployments, where he helped develop the Dextrose system software for the XO-1 and XO-1.5.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/bernieInnocenti2.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Mary  L J",id:"365003",pt:[25.0480096,121.517085],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"CEO and Founder of Pixel Qi Corp. Mary Lou's work has contributed to putting 2 million laptops into the hands of some of the poorest children in the developing world. She was named one of the hundred most influential people in the world by Time Magazine in 2008 for her work in creating One Laptop per Child (OLPC) where she led the engineering and started the organization (with Nicholas Negroponte). Wired Magazine credits her laptop architecture design with starting the low-cost laptop revolution",photo:"http://olpcsf.com/CommunitySummit2010/images/people/MaryLouJepsen.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Tanushree  J",id:"347002",pt:[37.8664679265,-122.298859781],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Graduate Student,School of Information,UC Berkeley",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Brewster  K",id:"416001",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"http://farm2.static.flickr.com/1381/5148548101_b6694995b5_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Susie  K",id:"373001",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Curriculum Technology Integration Specialist SFUSD Teacher",photo:"http://farm2.static.flickr.com/1179/5148619125_a83d02c2ac_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Mohsen  K",id:"363002",pt:[37.2884726407,-122.003654575],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"XODOCKSJSU",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Tanya  K",id:"386002",pt:[37.9093702,-122.6863733],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"OLPC Volunteer, Madagascar Deployment",photo:"http://farm5.static.flickr.com/4133/5148833991_f2959f9b75_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Elizabeth  K",id:"420001",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"OLPC Volunteer",photo:"http://lh5.ggpht.com/_pglySzWMJKU/TMW8TmIBicI/AAAAAAAABME/BQf_BBADmXY/s720/100_9454.JPG",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Ted  K",id:"421001",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Starr King Elementary School,San Francisco",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Brian  L",id:"396001",pt:[38.5815719,-121.4943996],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Grad Student and Sac State",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Sara Lazaro",id:"407001",pt:[41.3856803,2.1702047],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"<a href='http://www.caramelossolidarios.org' target='_blank'>Caramelos Solidarios founder</a>",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Mike  L",id:"395002",pt:[39.0398314,-77.0552555],icon:"http://mapmeld.appspot.com/xo-red.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Russell  L",id:"361003",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Nina  M",id:"378002",pt:[37.6865124761,-122.469139878],icon:"http://mapmeld.appspot.com/xo-red.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Jennifer  M",id:"392002",pt:[42.982,-81.255],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"I am a consultant currently supporting OLPC Learning Teams in Latin America. I am especially interested in p2p learning and the impact of technology on special education.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/JenniferMartino.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Hilary  N",id:"411001",pt:[37.8043808,-122.2708166],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Kevin  O",id:"398002",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Kevin  O",id:"349004",pt:[43.5817802854,-79.5670584166],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Chair of Science and Computer Science,Upper Canada College,Toronto Canada  Friend of everyone at Ntugi Day Secondary School,near Meru Kenya  Grateful to the ongoing support of the Lewa Wildlife Conservancy for food, shelter, transportation and many other things",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Shaneil  P",id:"359002",pt:[37.2884726407,-122.003654575],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"XO DockSJSU",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Zachary  P",id:"415001",pt:[26.7412429715,-81.4387095752],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Fernanda  P",id:"368002",pt:[26.7412429715,-81.4387095752],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Jennifer  Pierzchalski",id:"348002",pt:[42.9371053764,-88.0018688729],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Owner,<a href='http://www.iLoveMyXO.com' target='_blank'>iLoveMyXO.com</a>Jennifer Pierzchalski is the owner of ILoveMyXO.com along with her husband, Brady Pierzchalski. In 2008, Brady started ILoveMyXO.com after participating in the G1G1 program and enjoying the XO at home with their children. Excited about OLPC and its mission, he began offering accessories for the XO and catering to the donor community. Jennifer grew and expanded ILoveMyXO to offer replacement parts as well as serve mini-deployments. Driven by the stories of people doing good locally around the world, Jennifer and Brady welcome all feedback, suggestions and advice for serving the community more effectively.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/JenniferPierzchalski.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"George  P",id:"374001",pt:[37.5601465052,-122.31120897],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Bobby  P",id:"418002",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"",photo:"http://farm5.static.flickr.com/4085/5112195842_93199c6ac2_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Emily  Q",id:"352003",pt:[37.3688301,-122.0363496],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Jonathan  Ragot",id:"375001",pt:[37.8919233421,-122.11933843],icon:"http://mapmeld.appspot.com/xo-red.png",details:"OLPC-France",photo:"http://farm2.static.flickr.com/1139/5111598477_aa87f64e7a_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Robin  R",id:"389002",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Marcelo  R",id:"377001",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Jonathan  R",id:"380001",pt:[37.8919233421,-122.11933843],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"CIO,San Francisco State University",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"James  S",id:"359003",pt:[37.4538274,-122.1821871],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"<a href='http://www.TalkNicer.com' target='_blank'>TalkNicer.com</a>",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Daniel  S",id:"370003",pt:[37.8664679265,-122.298859781],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Anna  Schoolfield",id:"394001",pt:[33.6078528149,-86.6225528923],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Anna Schoolfield started showing up at XO implementation planning meetings for the Birmingham, Alabama, deployment in early 2008. Eventually that developed into the primary tech support role. She's run a test XS out of her house since Spring 2008 and her Jabber users would probably riot if it ever went down. Always looking for something new and fun to try on the XO or XS, she is prone to wild experimentation with those platforms. As she says, \"If you haven't rendered your XO or XS unbootable at some point, you're not trying hard enough.\" Anna just took the above self-portrait on her XO, the best camera she could find!",photo:"http://olpcsf.com/CommunitySummit2010/images/people/Anna_Schoolfield.png",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Lana  S",id:"395001",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Carol  R S",id:"422001",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Carol Ruth Silver has most recently been a pro bono consultant at Paiwastoon Network Services, which is the technical and implementation partner of OLPC-Afghanistan. She is a passionate advocate for extension of the OLPC laptop program beyond government schools, which serve only approximately fifty per cent of Afghanistanâ€™s children. The other half are predominantly girls in rural areas, presently growing up illiterate, or served by local Community Based Schools. Because of her persistence, the proposal for the next extension of the OLPC-Afghanistan program in Afghanistan calls for committing 40% of new deployments to Community Based Schools. Carol Ruth Silver has founded or co-founded numerous organizations, including the Hayward-Ghazni (Afghanistan) Sister City Committee and Master Teachers by Satellite for Afghanistan, and in her earlier career the Chinese American International School. She was elected and served three terms on the San Francisco Board of Supervisors, as well as being President of the Board of the Golden Gate Bridge, and of the Bay Area Air Quality Management District.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/CarolRuthSilver.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Sonya  S",id:"385001",pt:[36.9746603,-122.029419],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Robert  S",id:"389003",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Online Community Architect, The Tech Museum",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Mark  T",id:"362002",pt:[37.9014913294,-122.039894612],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Zareason,Fedora Ambassador,<a href='http://www.GidgetKitchen.org' target='_blank'>GidgetKitchen.org</a>",photo:"http://lh3.ggpht.com/_pglySzWMJKU/TMNxUIGfKxI/AAAAAAAABFw/4xQ0DUVwRjs/s720/100_9014.JPG",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Nathaniel  T",id:"388001",pt:[37.8664679265,-122.298859781],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"OLPC Co-Presenter",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"John  Tierney",id:"371001",pt:[42.3316454,-83.0466755],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Educational Outreach-Sugar Labs",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Benjamin  T",id:"358003",pt:[37.7782293848,-122.442501544],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Graduate Student,Computer Science,SFSU",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Ed  T",id:"346002",pt:[37.7782293848,-122.442501544],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Harriet  Vidyasagar",id:"398001",pt:[12.961505,74.8899867],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"Digital Bridge Foundation",photo:"http://farm2.static.flickr.com/1379/5111598681_f7b6696812_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Ted  V",id:"389004",pt:[30.0209092043,-95.3782043065],icon:"http://mapmeld.appspot.com/xo-red.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Naiyana  V",id:"400001",pt:[30.0209092043,-95.3782043065],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Jessie  W",id:"352002",pt:[39.9709212281,-86.1347067695],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Wikimedia Foundation, Global Development Special Projects Manager",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Aimee Anderson",id:"356002",pt:[-12.249722964,136.897187318],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Yirrkala area",photo:"",album:"",group:"OLPC Australia",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Nadine  M",id:"383002",pt:[18.3182982311,-77.6682965742],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Lecturer Moneague College Jamaica, OLPC Jamaica",photo:"http://farm2.static.flickr.com/1177/5111597385_dbb7c42a20_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Vinay  A",id:"400002",pt:[37.3367610535,-121.881440553],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"John Ryan",id:"409001",pt:[-11.6216624967,-76.6703492696],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"COO and VP of Sales and Marketing",photo:"",album:"",group:"Pixel Qi Corp",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"William  S",id:"403001",pt:[34.5868042841,-119.922968559],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Documentary Filmmaker",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPoints.push({name:"Charles  F",id:"353003",pt:[37.6794253306,-122.471800055],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"SFSU business student, iMSA officer, technology enthusiast",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Elizabeth  H",id:"369002",pt:[37.8759146266,-122.246265961],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"Evan  M",id:"402002",pt:[37.7598357061,-122.45367582],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Executive Director - ViviendasLeon",photo:"",album:"",group:"http://viviendasleon.org/",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPoints.push({name:"Abhijit  P",id:"353004",pt:[37.6859710996,-122.46740873],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Daniel  P",id:"408001",pt:[37.8729335756,-122.242231918],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Researcher - UC Berkeley's Center for Next Generation Teaching ",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPoints.push({name:"Susan  P",id:"404001",pt:[40.0557664781,-75.3743516619],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPoints.push({name:"David  R",id:"413002",pt:[37.7715617363,-122.426956995],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Tabitha Roder",id:"383003",pt:[-36.8627198902,174.756698608],icon:"http://google-maps-icons.googlecode.com/files/expert.png",details:"Coordinator and founding volunteer of olpc Aotearoa - a community of testers, translators, advocates and educators supporting olpc and Sugarlabs",photo:"http://lh4.ggpht.com/_fdbwZ2mqG1Q/TMb0AIh5svI/AAAAAAAABYo/lDen8MQXtKM/4305674738_2ce6d152c6_b.jpg",album:"",group:"olpc Aotearoa",icon:"http://google-maps-icons.googlecode.com/files/expert.png"});
+	myPoints.push({name:"Mohsen Kazemi",id:"399001",pt:[37.3190241103,-121.967115402],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Project Coordinator and Co-Founder",photo:"",album:"http://xodock.com/",group:"XODOCK",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Becky Young",id:"368003",pt:[13.9525716946,-87.412109375],icon:"",details:"One public elementary school has 20 XOs.<br/><a href='http://rdyrussia.blogspot.com/' target='_blank'>Project Blog</a>",photo:"http://lh3.ggpht.com/_yHRopLqAh_4/S3998o5lvjI/AAAAAAAAER4/gQKW_e7dQJ0/s640/P1070602.JPG",album:"http://picasaweb.google.com/rdyrussia/OLPC",group:"Zapote Project",icon:""});
+	myPoints.push({name:"Anna",id:"358002",pt:[32.535101549,-86.4233398437],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Describe this place or person",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPoints.push({name:"Christoph Derndorfer",id:"381001",pt:[48.2048919958,16.3729858398],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"OLPC (Austria) member, OLPC News Co-Editor. Christoph Derndorfer has been a member of OLPC (Austria) since it was founded in mid-2007 and took on the role of a co-editor of olpcnews.com in May 2008. Since autumn of 2008 he has also continually supported the Austrian OLPC pilot project. In 2009 he volunteered with OLE Nepal in Kathmandu for 3 months. In mid-2010 he spent 6 weeks traveling through Uruguay, Paraguay, and Peru to observe how the OLPC projects in these countries are going. He subsequently reported his findings via talks in Lima, Washington, D.C. and Boston as well as articles on olpcnews.com. Other than that he has co-authored the Activity Handbook, given a number of presentations about OLPC and Sugar at Austrian universities and various events and conferences in Austria and Germany and contributed to OLPC and Sugar Labs in numerous other ways. In his non-OLPC life he is a computer science student at Vienna University of Technology and a researcher within the field of ICT and Sustainability at the Club of Rome - European Support Centre.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/Christophd.jpg",album:"",group:"OLPC (Austria) / OLPC News",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPoints.push({name:"Kanda Primary ",id:"375002",pt:[5.57648660844,-0.193331391541],icon:"",details:"",photo:"",album:"",group:"",icon:""});
+	myPoints.push({name:"Shaneil Parsad",id:"388002",pt:[37.3350182218,-121.90113531],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"XO Dock, SJSU",photo:"http://farm5.static.flickr.com/4086/5112198834_1b747dfc84_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Adam Gordon",id:"378001",pt:[44.157135178,-78.0380249023],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"University of Toronto Computer Science Student.  Former UCC student project manager at Ntugi Day School Implementation with Lewa Conservancy",photo:"http://farm2.static.flickr.com/1368/5112194490_25743fea00_m.jpg",album:"",group:"Lewa",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Kevin Gordon",id:"345002",pt:[43.6440635113,-79.3809702545],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"CTO at Entertainment Partners.  Network and Infrastructure support for Ntugi Deployment at Lewa, Kenya",photo:"http://farm2.static.flickr.com/1192/5111595685_54e5e5cb3f_m.jpg",album:"",group:"Lewa",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPoints.push({name:"Ntugi Day School",id:"394002",pt:[0.821040161376,37.0043945312],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"OLPC implementation through the Lewa Conservancy Education Trust, jointly with Upper Canada College, Toronto",photo:"",album:"",group:"Ntugi",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+/*newPoints*/	myPointSuggest({name:"Bayan Ulgii aimag",id:"541003",pt:[48.9766979762,89.9657305908],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"3 ?????? ????? ?????????? 2-5 ?????? ?????? ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Aleksey Lim",id:"585001",pt:[51.5052239669,81.1936950684],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Sugar developer",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Joachim Pedersen",id:"584001",pt:[37.7149333573,-122.459182739],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"I am the OLPC-SF Repair Center!",photo:"",album:"",group:"OLPC-SF",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"eKindling Pilot School Lubang Mindoro Philippines",id:"437001",pt:[13.8502,120.1238],icon:"http://google-maps-icons.googlecode.com/files/university.png",details:"Educators and students use 100 XO laptops to enhance their learning. Most children and even adults on this island have little to no exposure to technologies.",photo:"http://apture.s3.amazonaws.com/00000125add874f1f0b4ce81007f000000000001.1380.JPG",album:"",group:"Education Kindling (eKindling)",icon:"http://google-maps-icons.googlecode.com/files/university.png"});
+	myPointSuggest({name:"OLPCorps Kibera",id:"583001",pt:[-1.482989,37.030792],icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png",details:"In 2009, a small group of us planted a seed and deployed 100 laptops to a small tribe in North Pokot, Kenya. There has been great news sent to us from our NGO, Pastor Edward from City Harvest Ministries. The Kenyan government wants to invest in more laptops to bring to the Kenyan community.<br/><br/>The first deployment will be 500 laptops for Summer 2011. Currently, we are negotiating the deployment process with One Laptop Per Child and constructing  an Action plan to carry out this project.<br/><br/><a href='http://ubcolpc09.wordpress.com/' target='_blank'>Project Blog</a><br/><br/><a href='http://olpckenya2009.blogspot.com' target='_blank'>Summer 2009 Blog</a>",photo:"http://ubcolpc09.files.wordpress.com/2010/11/6531_104585980885_542980885_2313810_3579200_n1.jpg?w=300",album:"",group:"UBC OLPC",icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png"});
+	myPointSuggest({name:"College Mixte de l'Experience",id:"579002",pt:[18.6142989651,-72.2792222745],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"About 100 children attend this small (so far free) school, which began in October 2008, founded by Marie Ange Belzine and Jean Marie Mercy.",photo:"http://swag.uwaterloo.ca/~marie/save/Nov18-10BlueTarpStidents.jpg",album:"http://BuildingASchool.org",group:"Formerly known as Blue Tarp School",icon:"http://google-maps-icons.googlecode.com/files/school.png"});
+	myPointSuggest({name:"College Mixte de l'Experience",id:"582001",pt:[18.6142729106,-72.2791780181],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"About 100 children attend this small (so far free) school, which began in October 2008, founded by Marie Ange Belzine and Jean Marie Mercy.",photo:"http://swag.uwaterloo.ca/~marie/save/Nov18-10BlueTarpStidents.jpg",album:"http://BuildingASchool.org",group:"formerly known as the Blue Tarp School",icon:"http://google-maps-icons.googlecode.com/files/school.png"});
+	myPointSuggest({name:"OLPC (Austria)",id:"581001",pt:[48.2089532817,16.3703680038],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"www.olpc.at",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Gary C Martin",id:"580001",pt:[55.9560302574,-3.17546844482],icon:"DEFAULT",details:"Software developer",photo:"",album:"",group:"",icon:"DEFAULT"});
+	myPointSuggest({name:"Mid-Michigan XO lending library",id:"579001",pt:[43.0747901842,-83.45703125],icon:"http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png",details:"Lending library for XO-1 in Mid-Michigan",photo:"",album:"",group:"Mid-Michigan",icon:"http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png"});
+	myPointSuggest({name:"Yanjmaa B",id:"342001",pt:[47.9236787212,106.895240317],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Head of project unit Mongolia",photo:"http://www.codewiz.org/wiki/pictures/conf/olpc-sf-summit-2010/IMG_0436.JPG",album:"",group:"http://laptop.gov.mn",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Unit project OLPC in Mongolia",id:"570002",pt:[47.9209166412,106.922519207],icon:"http://google-maps-icons.googlecode.com/files/bigcity.png",details:"room 312, National IT Park, sity UlaanBaatar ",photo:"",album:"",group:"www.laptop.gov.mn",icon:"http://google-maps-icons.googlecode.com/files/bigcity.png"});
+	myPointSuggest({name:"Darkhan Uul aimag",id:"544002",pt:[49.4786248322,105.913772583],icon:"http://google-maps-icons.googlecode.com/files/places-visited.png",details:"4 ?????? ?????????? 2-5 ?????? 413 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-visited.png"});
+	myPointSuggest({name:"Umnugovi aimaag",id:"482004",pt:[42.9673604198,106.120758057],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"???? ???? ????? ?????????? 2-5 ?????? ?????? 119 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Umnugovi aimag",id:"541002",pt:[44.0846428343,103.551368713],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"?????? ????? ?????????? 2-5 ?????? 212 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Tuv aimag",id:"561002",pt:[46.759511314,107.095794678],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"?????????? ????? ?????????? 2-5 ?????? 32 ???????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Govisumber aimag",id:"551002",pt:[46.3604318912,108.361611037],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"2-? ?????????? 2-5 ?????? 314 ????????? ???????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Donrnogovi aimag",id:"567001",pt:[44.8872530438,110.116676955],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"?????????? 3-? ?????????? 2-5 ?????? 342 ????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Dornod aimag",id:"573001",pt:[48.0760303801,114.535293579],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????????? 11 ?????? ?????????? 2-5 ?????? 227 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Sukhbaatar aimag",id:"543003",pt:[46.677346911,113.277815996],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"?????? ????? I ?????????? 2-5 ?????? 186 ??????????? ???????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Khan Khentii CS ",id:"566001",pt:[47.3226408799,110.654830156],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"??? ?????? ????????? ?????????? 2-5 ?????? 330 ???????? ??????? ?????.",photo:"",album:"",group:"??? ??????",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Zavkhan aimag",id:"504004",pt:[47.7334085013,96.8507250977],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???????? 4 ?????? ?????????? 2-5 ?????? 199 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Uvs aimag",id:"565002",pt:[49.9901685486,92.0668658447],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???????? ???????? ????? ?????????? 2-5 ?????? 182 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Khovd aimag",id:"486003",pt:[48.0143598678,91.6363391113],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???? ????? ?????????? 2-5 ?????? ?????? 452 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Govi-Altai aimag",id:"516003",pt:[46.3711862952,96.262956543],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????? ????????? ?????????? 2-5 ?????? ?????? 164 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"BayanKhongor aimag",id:"578001",pt:[46.1851510307,100.723405762],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????? ????? ?????????? 2-5 ?????? 756 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Uvurkhangai aimag",id:"577001",pt:[46.2611600806,102.783342285],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????????? ?????? ?????????? 2-5 ?????? 283 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Arkhngai aimag",id:"516002",pt:[47.4704311278,101.459489746],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???????? ?????? 3 ?????? ?????????? 2-5 ?????? 502 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Khuvsgul aimag",id:"576001",pt:[50.1167,100.045],icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png",details:"???? ?????? ????? ?????????? 2-5 ?????? 184 ??????????? ??????? ?????.one of three schools in Khovsgol district",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png"});
+	myPointSuggest({name:"Khuvsgul aimag",id:"575001",pt:[50.4425,100.1603],icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png",details:"?????? ??????? ?????????? 2-5 ?????? 243 ??????????? ??????? ?????.Photo CC-BY Elana Langer",photo:"http://farm4.static.flickr.com/3233/2915260637_f5f0375063.jpg",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png"});
+	myPointSuggest({name:"Khuvsgul aimag",id:"559002",pt:[51.5023,100.6674],icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png",details:"???? ????? ?????????? 2-5 ?????? 205 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png"});
+	myPointSuggest({name:"Bulgan aimag",id:"477003",pt:[49.3918304851,102.698125839],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????? ????? ????? ?????????? 2-5 ?????? 280 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Orkhon Uul aimag",id:"492004",pt:[49.0259534753,104.028244019],icon:"http://google-maps-icons.googlecode.com/files/places-visited.png",details:"???? ????? 2 ?????? ?????????? 2-5 ?????? 228 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-visited.png"});
+	myPointSuggest({name:"Selenge aimag",id:"574001",pt:[50.2276764481,106.196670532],icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png",details:"????????? 3 ?????? ?????????? 2-5 ?????? ?????? 186 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png"});
+	myPointSuggest({name:"Tuv aimag",id:"568001",pt:[47.2566284591,107.536949782],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"???? ????? ?????????? 2-5 ?????? 123 ????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Dundgovi aimag",id:"572001",pt:[45.7597472248,106.275939941],icon:"http://google-maps-icons.googlecode.com/files/places-visited.png",details:"?????????? 4 ?????? ?????????? 2-5 ?????? 199 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-visited.png"});
+	myPointSuggest({name:"Baganuur duureg",id:"570001",pt:[47.7845548442,108.325562148],icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png",details:"??? ???????? ????????? ?????????? 4-5 ?????? 100 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/places-unvisited.png"});
+	myPointSuggest({name:"Baganuur duureg",id:"569001",pt:[47.783632094,108.320755629],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????????? ????????? ?????????? 3-4 ?????? 100 ??????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/world.png"});
+	myPointSuggest({name:"Nalaikh duureg",id:"530003",pt:[47.7861696178,107.296623854],icon:"http://google-maps-icons.googlecode.com/files/museum.png",details:"???????? ????????? ?????????? 2-5 ?????? 140 ????????? ??????? ?????.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/museum.png"});
+	myPointSuggest({name:"Andi Tepper",id:"565001",pt:[42.365918111,-71.1150601334],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"MIT alum, current HGSE student, volunteer",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Bergen County OLPC Contributors",id:"519005",pt:[40.9175428977,-74.0307617188],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Project Lead: John S.Developement team: Elliot G.                    Vikram J.                   Mark F.                   Alec B.Creative Lead:     Erin C.",photo:"",album:"",group:"Bergen County OLPC Contributors",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPointSuggest({name:"Paul Fox",id:"543002",pt:[42.4263846314,-71.165859931],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"OLPC Volunteer",photo:"http://farm6.static.flickr.com/5202/5192415431_0b2a25ab50_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Ben Schwartz",id:"488004",pt:[42.3492970429,-71.1370208196],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"MIT student and OLPC volunteer",photo:"http://farm5.static.flickr.com/4085/5193011778_f83e9da13b_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPointSuggest({name:"Sandra T and Alan P",id:"545002",pt:[42.8098933656,-70.8711624146],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"XO Sugar Solutions for Africa, <a href='http://xoaidsbyhoc.tumblr.com/’ target='_blank'>Sandra’s Blog</a>",photo:"http://farm5.static.flickr.com/4154/5191931461_53bde59587_m.jpg",album:"http://www.flickr.com/photos/32971850@N07/sets/72157622902029246/",group:"Small Solutions Big Ideas",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Sandy Culver",id:"364002",pt:[42.623611,-71.1127778],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Sandy Culver, 'culseg' on IRC,  is a long-term community support volunteer who has handled over 2000 support tickets, lead the effort to establish a process for re-donating G1G1 XOs, advocated for individual contributor projects,  and acts as co-admin for OLPC Forum, plus he does some XO testing.",photo:"http://farm5.static.flickr.com/4088/5191918623_f9efb659ec_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Kevin Cole",id:"564001",pt:[38.9081422531,-76.9893455505],icon:"http://google-maps-icons.googlecode.com/files/university.png",details:"Kevin Cole is one of the hosts of the OLPC Learning Club DC, as well as the team contact for the DC Ubuntu \"LoCo\" (Local Community).  He is employed as a research applications programmer for the Gallaudet Research Institute at Gallaudet University.Gallaudet University is the world's only accredited liberal arts university for deaf students. Founded as a deaf school in 1857, the campus now houses both a primary and a secondary school for deaf students, as well as the university itself.",photo:"",album:"",group:"OLPC Learning Club DC",icon:"http://google-maps-icons.googlecode.com/files/university.png"});
+	myPointSuggest({name:"Illinois Institute of Technology",id:"540002",pt:[41.8348543076,-87.6281452179],icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png",details:"A project-based class at Illinois Institute of Technology working with OLPC Haiti to solar-power primary schools participating in the OLPC program, and hoping to set up communication possibilities between OLPC Haiti schools, between Chicago and Haiti, and between Haiti OLPC and other OLPC projects around the world.",photo:"http://iitempoweringhaiti.org/",album:"http://iitempoweringhaiti.org/",group:"IIT Empowering Haiti",icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png"});
+	myPointSuggest({name:"Summit-Questa Montessori School",id:"475001",pt:[25.6562380123,-81.1045837402],icon:"http://google-maps-icons.googlecode.com/files/computer.png",details:"K-8th Grade",photo:"",album:"",group:"Summit-Questa Montessori School",icon:"http://google-maps-icons.googlecode.com/files/computer.png"});
+	myPointSuggest({name:"Adam Gordon",id:"474001",pt:[43.7447063814,-79.3555716002],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"University of Toronto Computer Science student, Ntugi Kenya Deployment team",photo:"http://farm2.static.flickr.com/1368/5112194490_25743fea00_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Kevin Gordon",id:"473001",pt:[43.6930947613,-79.3006399596],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Ntugi Kenya Deployment team, CTO of EP Canada Film Services Inc.",photo:"http://farm2.static.flickr.com/1192/5111595685_54e5e5cb3f_m.jpg",album:"",group:"http://www.epcanada.com",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Mark Battley",id:"352001",pt:[43.6440535113,-79.3809800545],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Head of Digital Media, Upper Canada College",photo:"http://farm2.static.flickr.com/1338/5127568034_67a8a2dc1a_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Edward Mokurai Cherlin",id:"472001",pt:[39.21809995,-85.9121966362],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"GeneralistSerial NGO FounderThe Mad Educator, teaching a billion children how to take over the world! Bwahahahaha!!",photo:"http://www.flickr.com/photos/mokurai/4318843263/",album:"http://www.flickr.com/photos/mokurai/sets/72157624878706614/with/4318843263/",group:"",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"George  Hunt",id:"412001",pt:[40.5834379,-74.1495875],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"NYC OLPC volunteer group",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Manu Sheel Gupta",id:"471001",pt:[28.623706,77.29156],icon:"DEFAULT",details:"Founder, Software for Education, Entertainment and Training Activities",photo:"",album:"",group:"",icon:"DEFAULT"});
+	myPointSuggest({name:"Lilly Nguyen",id:"470001",pt:[21.033088114,105.852508545],icon:"DEFAULT",details:"PhD Student, Information Studies, UCLA. Researching FOSS in Vietnam",photo:"",album:"",group:"",icon:"DEFAULT"});
+	myPointSuggest({name:"Salim Hayran",id:"467001",pt:[31.4992614596,66.8640057344],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Salim Hayran is the OLPC Project Manager who is the driving force of OLPC success in Afghanistan. His team has been supporting OLPC from the beginning and played crucial role in integrating technology into the classroom. The team worked on the digitalization of Afghan curriculum books in an interactive format. Mr. Hayran is confident that through OLPC technology they can modernize the current inadequate education system into a success sector in a matter of years. OLPC successfully deployed in 9 schools around 5 provinces in Afghanistan.",photo:"",album:"",group:"<a href='http://web.olpc.af' target='_blank'>OLPC.af Website</a>",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"OLPC Afghanistan Team",id:"361001",pt:[31.599591081,65.7402139893],icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png",details:"OLPC Afghanistan is a collaborative partnership involving the Ministry of Education, Roshan, USAID Afghanistan Small and Medium Enterprise Development (ASMED) and the IT company PAIWASTOON. The Ministry of Education has overseen the deployment of OLPC from day 1 in Afghanistan leading the integration of technology into the classroom and played an important role in getting schools and local authorities involved. The open source IT company PAIWASTOON localized Sugar, developed interactive books for Grade 4-6, content toolkits and human power systems. Roshan provided connectivity and 800 XO laptops. OLPC provided 3,750 laptops to date through Give One Get One. USAID/ASMED through it's grant supported teacher training, content creation, and school networking.  <a href='http://web.olpc.af' target='_blank'>OLPC.af Website</a>",photo:"http://www.olpc.af/images/stories/wow4.jpg",album:"C:Documents and SettingsMOEDesktop",group:"OLPC Afghanistan Team",icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png"});
+	myPointSuggest({name:"Lidet Tilahun",id:"466001",pt:[42.3482821016,-71.1150481634],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Lidet Tilahun, Director of International Outreach, OLPC Foundation. Lidet directs One Laptop per Child's international outreach, fostering, building and maintaining relationships with stakeholders around the world. These include public and private companies, national project leads, and senior government officials.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/LidetTilahun.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Giulia D'Amico",id:"462002",pt:[25.7886597594,-80.2214611201],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"Giulia D'Amico is currently in charge of the Development Dept at One Laptop per Child Association. She is a consultant for International Relations, and had conducted Bilateral and Multilateral Governments' agreements. Working directly in the field, she has extensive experience in geopolitics. She has worked for the Italian Government, National Agency on Youth, Ministry of Youth and as Deputy Director of the Peacebuilding Department at the Glocal Forum. Giulia holds a degree in Business and a MA in International Management from LUISS University in Rome. She is also an Advisor for the Development Gateway Foundation.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/GiuliaDAmico.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPointSuggest({name:"Xavier Carcelle",id:"465001",pt:[50.7298590642,4.49313919895],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Xavier Carcelle, OLPC Europe CTO, believes that OLPC deployments will reach a new level of maturity with the use of the XS School Server. A first set of deployments (Madagascar, Papua New Guinea...) have been configuring and using the XS Server successfully for back-ups, peer-to-peer applications over wireless and web access. Moving on, this summit is the perfect occasion to workshop this technical topic (which hardware? configuration and documentation? hard feedback from deployments? Internet access issues?) establishing a great community XS server forward path. For more of Xavier's professional background, please check out the OLPC Europe team: http://olpceu.org/content/aboutus/aboutus_staff.html",photo:"http://olpcsf.com/CommunitySummit2010/images/people/Xavier_Carcelle.jpg",album:"",group:"http://olpceu.org",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Remy DeCausemaker",id:"464001",pt:[43.1610299955,-77.6109219],icon:"http://mapmeld.appspot.com/xo-red.png",details:"As RIT's resident Hacktivist Remy leads teams of developers and students, facilitating hackathons and codesprints each quarter, including the Great American Hackathon (http://sunlightlabs.com/hackathon09), CrisisCampROC: Hackathon for Haiti (crisiscamp.org), BarcampROC5 (barcamproc.org), and CapitolCamp (capitolcamp.org). ",photo:"http://olpcsf.com/CommunitySummit2010/images/people/RemyDeCausemaker.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPointSuggest({name:"Mario Behling",id:"458001",pt:[10.7732384089,106.684265137],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"I am happy to cooperate with anyone in the region to foster OLPC and IT Education. Please get in touch and check out http://olpc.vn",photo:"http://www.tuxjournal.net/wp-content/uploads/2009/06/jalalbad-school-with-linux-olpc-lxde-freifunk.JPG",album:"",group:"OLPC Vietnam",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"OLPC Vietnam",id:"456001",pt:[11.1863284553,106.73828125],icon:"http://google-maps-icons.googlecode.com/files/communitycentre.png",details:"The OLPC Vietnam project brings together communities, educational institutions, official partners and volunteers to support better education for children and families. Ultimate goal of the project is a large scale deployment to support and foster the change of frontal teachers centralized methods to a learner and learning focused methodology in Vietnam. Please check out http://olpc.vn",photo:"",album:"http://www.facebook.com/pages/OLPC-Vietnam/121980531171801",group:"OLPC Vietn",icon:"http://google-maps-icons.googlecode.com/files/communitycentre.png"});
+	myPointSuggest({name:"Hong Phuc",id:"457001",pt:[10.0384605097,105.777893066],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"I am the organizer of community events such as FOSSASIA featuring the OLPC project and engaging new people. I am happy to cooperate with anyone making the OLPC project in Vietnam successful and benefiting kids throughout the region.",photo:"http://foss.vn/wp-content/uploads/2009/12/dang-hong-phuc.jpg",album:"",group:"OLPC Vietnam",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Mike Dawson",id:"461001",pt:[32.5054415669,66.5893475312],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Deployed OLPC around Afghanistan in Herat, Kandahar, Jalalabad and in Kabul. Developed a pure wireless router to router mesh system for school networks, a feasible human power pedal machine, and new content development tools to radically reduce the cost of creating curriculum content. In addition to running One Laptop per Child, Mike's company PAIWASTOON created the first email system in the Afghan language, template authoring software for Joomla, and bandwidth management systems.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/mikeDawson.jpg",album:"",group:"<a href='http://www.paiwastoon.af' target='_blank'>Mike’s Website</a>",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Serge Stinckwich",id:"449001",pt:[21.0438761266,105.860008984],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Serge is a researcher at IRD (Institut de Recherche pour le Développement), who follows the localization efforts to get Sugar running in Vietnamese and other languages. He is mostly involved in the Smalltalk community. He is a part of a project called SqueakBot, where kids could use EToys to control robots. <a href='http://www.doesnotunderstand.org/' target='_blank'>Serge’s Blog</a>",photo:"http://farm4.static.flickr.com/3211/2800054360_96d604cdfa.jpg",album:"",group:"OLPC Vietnam - http://olpc.vn",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Marina Zd",id:"358001",pt:[42.3645142795,-71.0260009766],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Active promoter of volunteer services and OLPC community. See<a href='http://chebvolunteer.wordpress.com ' target='_blank'>Marina’s Blog</a> and <a href='http://homepage.mac.com/wtstelzer/Marina-olpcsf.mp4' target='_blank'>Interview</a>",photo:"http://farm2.static.flickr.com/1154/5111595225_58006cc1ea_m.jpg",album:"",group:"<a href='http://olpc.vn' target='_blank'>OLPC Vietnam</a>",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Alex Kleider",id:"393001",pt:[37.9093702,-122.6863733],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"OLPC-SF Volunteer",photo:"http://farm5.static.flickr.com/4010/5148625689_d94c857ef0_m.jpg",album:"",group:"OLPC-SF",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"June  K",id:"353002",pt:[37.9093702,-122.6863733],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"OLPC Volunteer, Madagascar Deployment",photo:"http://farm5.static.flickr.com/4013/5149527240_6979a8e624_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"SJ Klein",id:"395003",pt:[42.3690851236,-71.096680396],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Samuel Klein directs community outreach for the OLPC Foundation, which he joined in 2006 to coordinate community creation. He has visited or worked with OLPC deployments on every continent. He regularly gives talks to promote universal access to a shared body of human knowledge, and the power of human connection and collaboration. Outside of OLPC, he is a Trustee of the Wikimedia Foundation, an affiliate of Harvard's Berkman Center, and a curator of curious codices.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/SamuelKlein.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"WOZO Choir / Alex Myril",id:"453001",pt:[18.5135291771,-72.2852303],icon:"http://google-maps-icons.googlecode.com/files/music-classical.png",details:"Petion ville, Haiti / WOZO Youth Choir and Dance Troupe.",photo:"",album:"http://www.haitipartners.org/youthchoir",group:"WOZO Choir",icon:"http://google-maps-icons.googlecode.com/files/music-classical.png"});
+	myPointSuggest({name:"Benaja Antoine",id:"454001",pt:[18.4901442686,-72.5873390234],icon:"http://google-maps-icons.googlecode.com/files/home.png",details:"Network of four community schools in Darbonne. All of them are using XO laptops, alongside the \"Reflection Circle\" and \"Open Space\" community learning methods of HaitiPartners.org",photo:"http://www.haitipartners.org/wp-content/uploads/IMG_2008-300x225.jpg",album:"http://www.haitipartners.org/cat/haiti-partners/special-projects/xo-laptop-pilot/",group:"Haiti Partners Partner Schools",icon:"http://google-maps-icons.googlecode.com/files/home.png"});
+	myPointSuggest({name:"Ben  Sheldon",id:"363003",pt:[42.3604823,-71.0595678],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Program Director @ The Transmission Project",photo:"http://farm2.static.flickr.com/1145/5149470638_c15ff5ac7c_m.jpg",album:"",group:"<a href='http://island94.org ' target='_blank'>Ben’s Blog</a>",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Nancie Severs",id:"452001",pt:[43.7022927707,-72.2895353],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Nancie is a project lead of the Vung Vieng Fishing Village OLPC Laptop of Vietnam. <a href='http://wiki.laptop.org/go/Projects/Vung_Vieng_Fishing_Vietnam' target='_blank'>Project Info</a><a href='http://www.travelpod.com/travel-blog/nsevers/4/tpod.html' target='_blank'>Nancie’s Blog</a>",photo:"http://images.travelpod.com/users/nsevers/4.1256797749.everyone-is-very-curious.jpg",album:"",group:"<a href='http://olpc.vn' target='_blank'>OLPC Vietnam</a>",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Vung Vieng OLPC",id:"445001",pt:[20.8602665748,107.268662244],icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png",details:"This pilot was launched in Oct 2009. Currently there are 24 students and 15 XOs at the school in the fishing village. If you interested in participating in this project, please contact us.<a href='http://wiki.laptop.org/go/Projects/Vung_Vieng_Fishing_Vietnam' target='_blank'>Project Info</a>",photo:"http://wiki.laptop.org/images/f/fd/P1020829-800.jpg",album:"http://www.travelpod.com/travel-blog/nsevers/4/tpod.html",group:"OLPC Vietnam - http://olpc.vn",icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png"});
+	myPointSuggest({name:"Saigon OLPC",id:"434002",pt:[10.8376450892,106.727294922],icon:"http://google-maps-icons.googlecode.com/files/museum.png",details:"This pilot was launched in Jan 2010. There are 20 children and 5 XOs in the Ba Chieu Shelter in HCMC. Please contact us if you want to participate in this project. <a href='http://saigonolpc.wordpress.com' target='_blank'>SaigonOLPC Blog</a>",photo:"http://wiki.laptop.org/images/4/46/Lesson3.jpg",album:"",group:"OLPC Vietnam - http://olpc.vn",icon:"http://google-maps-icons.googlecode.com/files/museum.png"});
+	myPointSuggest({name:"Nina  Stawski",id:"348003",pt:[37.5482697,-121.9885719],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"OLPC Volunteer",photo:"http://farm1.static.flickr.com/236/459951728_97532d618d_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Victor  W",id:"417001",pt:[37.2884726407,-122.003654575],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"XO Dock-SJSU",photo:"http://farm2.static.flickr.com/1111/5112198960_9811ce60e5_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Vinay Amin",id:"354002",pt:[37.3367610535,-121.881440553],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"XO Dock",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Isabella Kleider",id:"435001",pt:[-15.3805949766,49.8418242852],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"OLPC Volunteer, Madagaskar Deployment",photo:"http://farm2.static.flickr.com/1398/5111598357_6e3dbfdb6f_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Bill Stelzer",id:"434001",pt:[18.3377890586,-64.7225162052],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Documentary film maker",photo:"http://farm5.static.flickr.com/4124/5148818859_cd51d2529e_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Beth Santos",id:"432001",pt:[0.329900686672,6.72814232275],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Beth Santos is Outreach Coordinator for Waveplace Foundation. She was reeled into the OLPC community after stumbling upon a few XOs in the small African island nation of São Tomé e Príncipe and building a program from the ground up. The program is still going strong today, fueled by five teachers and 100 students at the São João Secondary School (see http://bethstepsup.blogspot.com for more info). Of Portuguese origin, Beth spent a year living in Coimbra, Portugal and is now the Director of Public Relations for the National Organization of Portuguese Americans. She is also Editor of Go Girl Magazine, an online magazine for and about women who travel around the world. Beth is a graduate of Wellesley College, where she majored in art history and cinema/media studies. She currently resides in Wilmington, NC",photo:"http://olpcsf.org/CommunitySummit2010/images/people/bethSantos3.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPointSuggest({name:"Rabi Karmacharya",id:"431001",pt:[27.7403621677,85.3113316162],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Rabi Karmacharya co-founded OLE Nepal in 2007 to implement OLPC program in partnership with Nepal Government. Since then OLE Nepal has completed two years of pilot, and the program is currently running in 27 schools scattered in seven districts in Nepal. OLE Nepal has also been developing local education content designed by curriculum experts that are loaded on the XOs and updated periodically through the school server. Teachers receive training on using the laptops and the content to teach subjects such as English, Nepali and mathematics. Currently heading a team of 27 staff comprising of educators, curriculum experts, content coordinators, software developers, graphic designers, network engineers, system administrators, and volunteers. Born and raised in Kathmandu. Received MEng and BSc in Electrical Engineering from MIT.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/RabiKarmacharya.jpg",album:"",group:"http://olenepal.org",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Caroline Meeks",id:"338002",pt:[42.4031993412,-71.1386516027],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Working on bootable USB systems including Sugar.  Previous worked on Sugar on a Stick deployments.XO 1.0 and 1.5 owner.",photo:"http://farm2.static.flickr.com/1251/5148671385_dc2d89ebe7_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Christophe Gueret",id:"429001",pt:[52.3789073977,4.84789848328],icon:"http://google-maps-icons.googlecode.com/files/laboratory.png",details:"Scientist working at the Free University of Amsterdam, coordinator of the SemanticXO project.",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/laboratory.png"});
+	myPointSuggest({name:"OLPC Deutschland e.V.",id:"346004",pt:[51.3140176066,9.48533723284],icon:"http://google-maps-icons.googlecode.com/files/regroup.png",details:" German grassroots organization(<a href=\"http://olpc-deutschland.de/\">homepage</a>). We have an XO lending library, a mailing list, a wiki. We do fund raising and support local activities.<p>This map location only marks our postal address, members live all over Germany.",photo:"http://www.olpc-deutschland.de/gfx/xo-man.png",album:"",group:"Germany",icon:"http://google-maps-icons.googlecode.com/files/regroup.png"});
+	myPointSuggest({name:"Bert Freudenberg",id:"424001",pt:[52.1177963704,11.6583436184],icon:"http://google-maps-icons.googlecode.com/files/expert.png",details:"Lead developer of <a href=\"http://squeakland.org\"/>Etoys</a> activity, co-founder of <a href=\"http://www.olpc-deutschland.de/\">OLPC Germany</a>, SugarLabs ombudsman",photo:"",album:"",group:"OLPC Deutschland e.V.",icon:"http://google-maps-icons.googlecode.com/files/expert.png"});
+	myPointSuggest({name:"xouva",id:"342002",pt:[38.8899731887,-76.9900321964],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"A G1G1 donor who tries to keep up with the developing saga",photo:"",album:"",group:"OLPC LC-DC",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Martin Dengler",id:"391001",pt:[22.2875851475,114.147459767],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Martin Dengler (mtd@sugarlabs.org)",photo:"http://www.martindengler.com/~martin/martin2.png",album:"",group:"Sugar Labs",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Jon Nettleton",id:"397001",pt:[49.2757926085,-123.124585152],icon:"http://google-maps-icons.googlecode.com/files/computer.png",details:"Home base for XO 1.5 graphics development",photo:"",album:"",group:"Independant",icon:"http://google-maps-icons.googlecode.com/files/computer.png"});
+	myPointSuggest({name:"Aimee Andersen",id:"392003",pt:[-12.2564329992,136.892037476],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"OLPC Australia - Yirrkala, Northern Territory",photo:"http://farm5.static.flickr.com/4084/5148533237_4a8847a1d4_m.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Ian Daniher",id:"339004",pt:[42.282796002,-71.2325754079],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Ian Daniher is a student of life at Olin College, with a long-time passion for educational technology, sparking others to Open Their Eyes. Based on the Community Repair paradigm he pioneered globally with OLPC's Support Gang almost 3 years ago, Ian delivers videotaped open workshops ",photo:"http://olpcsf.com/CommunitySummit2010/images/people/IanDaniher.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Nigel Brooks",id:"390001",pt:[33.4403557823,-112.073350654],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"Management consultant focused on online learning",photo:"http://farm2.static.flickr.com/1114/5126055549_099972fb9a_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Kasiisi Primary School",id:"336003",pt:[0.5704,30.3116],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"The Kasiisi Project began using 100 XO laptops with OLPCorps,acquired an additional 60  laptops from another OLPCorps school,and recently completed a <a href='http://mapuganda.blogspot.com' target='_blank'>sensors and maps class</a>",photo:"http://sphotos.ak.fbcdn.net/hphotos-ak-ash2/hs185.ash2/44801_1407597873082_1326480171_2330084_294551_n.jpg",album:"",group:"The Kasiisi Project",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Fargo / Sudan Literacy Project",id:"419001",pt:[46.8964193852,-96.8027581055],icon:"http://google-maps-icons.googlecode.com/files/bookstore.png",details:"A cross-continental literacy project.<br/><a href='http://fargoxo.wordpress.com/' target='_blank'>Blog</a>",photo:"",album:"",group:"",icon:"http://google-maps-icons.googlecode.com/files/bookstore.png"});
+	myPointSuggest({name:"Andi Gros",id:"370002",pt:[42.3715744684,-71.1120711559],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Andreas Gros is a scientist at the New England Complex Systems Institute and a long-time developer with a strong interest in providing public access to knowledge. He started working on providing annotation support to the XO read activity to facilitate communication about e-texts.",photo:"http://olpcsf.org/CommunitySummit2010/images/people/AndreasGros.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Stefan Unterhauser",id:"357002",pt:[42.3651379388,-71.103885054],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Describe this place or person",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPointSuggest({name:"Walter Bender",id:"413001",pt:[42.343582866,-71.2423801422],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Walter Bender is founder and executive director of Sugar Labs, a non-profit foundation. In 2006, Bender co-founded the One Laptop per Child, a non-profit association with Nicholas Negroponte and Seymour Papert. As director of the MIT Media Laboratory, Bender led a team of researchers in fields as varied as tangible media to affective computing to lifelong kindergarten. In 1992, Bender founded the MIT News in the Future consortium, which launched the era of digital news.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/WalterBender.jpg",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Lubuto Library Project",id:"373002",pt:[-15.431094419,28.289886154],icon:"http://google-maps-icons.googlecode.com/files/bookstore.png",details:"30 XOs with support of Sugar Labs DC - laptops for Library at Fountain of Hope and Ngwerere Library<br/><a href='http://www.lubuto.org/' target='_blank'>Official Site</a>",photo:"http://farm5.static.flickr.com/4111/4949718402_bf60da8356_m.jpg",album:"http://www.flickr.com/photos/lubutolibraryproject/",group:"Lubuto Library Project",icon:"http://google-maps-icons.googlecode.com/files/bookstore.png"});
+	myPointSuggest({name:"Juan Chacon Free Software Project",id:"389001",pt:[13.7172164267,-89.9652360624],icon:"http://google-maps-icons.googlecode.com/files/expert.png",details:"Sugar and Ubuntu project<br/><a href='http://proyectojuanchacon.blogspot.com/' target='_blank'>Project Blog</a>",photo:"http://3.bp.blogspot.com/_66PcmfVUVjI/TKop_NpZ5MI/AAAAAAAAAVk/8AQp9QBIubo/s320/baby_bear_desktop.png",album:"",group:"Sugar Labs DC",icon:"http://google-maps-icons.googlecode.com/files/expert.png"});
+	myPointSuggest({name:"Sara Lazaro",id:"369003",pt:[40.720079972,-118.26171875],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Caramelos Solidarios  Founder ww.caramelossolidarios.org",photo:"",album:"",group:"I am in San Francisco if you need some help, just let me now",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Ntugi Day School",id:"346003",pt:[0.229179223335,37.5321960449],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"Deployment at Ntugi Day School, co-operative effort of the Lewa Wildlife Conservancy Education Trust and Upper Canada College, Toronto",photo:"",album:"",group:"Lewa",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Ntugi Day School",id:"394002",pt:[0.821040161376,37.0043945312],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"OLPC implementation through the Lewa Conservancy Education Trust, jointly with Upper Canada College, Toronto",photo:"",album:"",group:"Ntugi",icon:"http://google-maps-icons.googlecode.com/files/daycare.png"});
+	myPointSuggest({name:"Kevin Gordon",id:"345002",pt:[43.6440635113,-79.3809702545],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"CTO at Entertainment Partners.  Network and Infrastructure support for Ntugi Deployment at Lewa, Kenya",photo:"http://farm2.static.flickr.com/1192/5111595685_54e5e5cb3f_m.jpg",album:"",group:"Lewa",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Adam Gordon",id:"378001",pt:[44.157135178,-78.0380249023],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"University of Toronto Computer Science Student.  Former UCC student project manager at Ntugi Day School Implementation with Lewa Conservancy",photo:"http://farm2.static.flickr.com/1368/5112194490_25743fea00_m.jpg",album:"",group:"Lewa",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Shaneil Parsad",id:"388002",pt:[37.3350182218,-121.90113531],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"XO Dock, SJSU",photo:"http://farm5.static.flickr.com/4086/5112198834_1b747dfc84_m.jpg",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Kanda Primary ",id:"375002",pt:[5.57648660844,-0.193331391541],icon:"",details:"",photo:"",album:"",group:"",icon:""});
+	myPointSuggest({name:"Christoph Derndorfer",id:"381001",pt:[48.2048919958,16.3729858398],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"OLPC (Austria) member, OLPC News Co-Editor. Christoph Derndorfer has been a member of OLPC (Austria) since it was founded in mid-2007 and took on the role of a co-editor of olpcnews.com in May 2008. Since autumn of 2008 he has also continually supported the Austrian OLPC pilot project. In 2009 he volunteered with OLE Nepal in Kathmandu for 3 months. In mid-2010 he spent 6 weeks traveling through Uruguay, Paraguay, and Peru to observe how the OLPC projects in these countries are going. He subsequently reported his findings via talks in Lima, Washington, D.C. and Boston as well as articles on olpcnews.com. Other than that he has co-authored the Activity Handbook, given a number of presentations about OLPC and Sugar at Austrian universities and various events and conferences in Austria and Germany and contributed to OLPC and Sugar Labs in numerous other ways. In his non-OLPC life he is a computer science student at Vienna University of Technology and a researcher within the field of ICT and Sustainability at the Club of Rome - European Support Centre.",photo:"http://olpcsf.com/CommunitySummit2010/images/people/Christophd.jpg",album:"",group:"OLPC (Austria) / OLPC News",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Anna",id:"358002",pt:[32.535101549,-86.4233398437],icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png",details:"Describe this place or person",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Pinksmall.png"});
+	myPointSuggest({name:"Becky Young",id:"368003",pt:[13.9525716946,-87.412109375],icon:"",details:"One public elementary school has 20 XOs.<br/><a href='http://rdyrussia.blogspot.com/' target='_blank'>Project Blog</a>",photo:"http://lh3.ggpht.com/_yHRopLqAh_4/S3998o5lvjI/AAAAAAAAER4/gQKW_e7dQJ0/s640/P1070602.JPG",album:"http://picasaweb.google.com/rdyrussia/OLPC",group:"Zapote Project",icon:""});
+	myPointSuggest({name:"Mohsen Kazemi",id:"399001",pt:[37.3190241103,-121.967115402],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Project Coordinator and Co-Founder",photo:"",album:"http://xodock.com/",group:"XODOCK",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Tabitha Roder",id:"383003",pt:[-36.8627198902,174.756698608],icon:"http://google-maps-icons.googlecode.com/files/expert.png",details:"Coordinator and founding volunteer of olpc Aotearoa - a community of testers, translators, advocates and educators supporting olpc and Sugarlabs",photo:"http://lh4.ggpht.com/_fdbwZ2mqG1Q/TMb0AIh5svI/AAAAAAAABYo/lDen8MQXtKM/4305674738_2ce6d152c6_b.jpg",album:"",group:"olpc Aotearoa",icon:"http://google-maps-icons.googlecode.com/files/expert.png"});
+	myPointSuggest({name:"David  R",id:"413002",pt:[37.7715617363,-122.426956995],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"Susan  P",id:"404001",pt:[40.0557664781,-75.3743516619],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPointSuggest({name:"Daniel  P",id:"408001",pt:[37.8729335756,-122.242231918],icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png",details:"Researcher - UC Berkeley's Center for Next Generation Teaching ",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Bluesmall.png"});
+	myPointSuggest({name:"Abhijit  P",id:"353004",pt:[37.6859710996,-122.46740873],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"",photo:"",album:"",group:"",icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png"});
+	myPointSuggest({name:"Evan  M",id:"402002",pt:[37.7598357061,-122.45367582],icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png",details:"Executive Director - ViviendasLeon",photo:"",album:"",group:"http://viviendasleon.org/",icon:"https://sites.google.com/site/olpcau/home/Orangesmall.png"});
+	myPointSuggest({name:"Elizabeth  H",id:"369002",pt:[37.8759146266,-122.246265961],icon:"http://mapmeld.appspot.com/xo-yellow.png",details:"",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-yellow.png"});
+	myPointSuggest({name:"Charles  F",id:"353003",pt:[37.6794253306,-122.471800055],icon:"http://mapmeld.appspot.com/xo-brown.png",details:"SFSU business student, iMSA officer, technology enthusiast",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-brown.png"});
+	myPointSuggest({name:"William  S",id:"403001",pt:[34.5868042841,-119.922968559],icon:"http://mapmeld.appspot.com/xo-red.png",details:"Documentary Filmmaker",photo:"",album:"",group:"",icon:"http://mapmeld.appspot.com/xo-red.png"});
+	myPointSuggest({name:"Bayan Ulgii aimag",id:"541003",pt:[48.9766979762,89.9657305908],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"3 ?????? ????? ?????????? 2-5 ?????? ?????? ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Aleksey Lim",id:"585001",pt:[51.5052239669,81.1936950684],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Sugar developer",photo:"",album:"",group:""});
+	myPointSuggest({name:"Joachim Pedersen",id:"584001",pt:[37.7149333573,-122.459182739],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"I am the OLPC-SF Repair Center!",photo:"",album:"",group:"OLPC-SF"});
+	myPointSuggest({name:"eKindling Pilot School Lubang Mindoro Philippines",id:"437001",pt:[13.8502,120.1238],icon:"http://google-maps-icons.googlecode.com/files/university.png",details:"Educators and students use 100 XO laptops to enhance their learning. Most children and even adults on this island have little to no exposure to technologies.",photo:"http://apture.s3.amazonaws.com/00000125add874f1f0b4ce81007f000000000001.1380.JPG",album:"",group:"Education Kindling (eKindling)"});
+	myPointSuggest({name:"OLPCorps Kibera",id:"583001",pt:[-1.482989,37.030792],icon:"http://google-maps-icons.googlecode.com/files/housesolarpanel.png",details:"In 2009, a small group of us planted a seed and deployed 100 laptops to a small tribe in North Pokot, Kenya. There has been great news sent to us from our NGO, Pastor Edward from City Harvest Ministries. The Kenyan government wants to invest in more laptops to bring to the Kenyan community.<br/><br/>The first deployment will be 500 laptops for Summer 2011. Currently, we are negotiating the deployment process with One Laptop Per Child and constructing  an Action plan to carry out this project.<br/><br/><a href='http://ubcolpc09.wordpress.com/' target='_blank'>Project Blog</a><br/><br/><a href='http://olpckenya2009.blogspot.com' target='_blank'>Summer 2009 Blog</a>",photo:"http://ubcolpc09.files.wordpress.com/2010/11/6531_104585980885_542980885_2313810_3579200_n1.jpg?w=300",album:"",group:"UBC OLPC"});
+	myPointSuggest({name:"College Mixte de l'Experience",id:"579002",pt:[18.6142989651,-72.2792222745],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"About 100 children attend this small (so far free) school, which began in October 2008, founded by Marie Ange Belzine and Jean Marie Mercy.",photo:"http://swag.uwaterloo.ca/~marie/save/Nov18-10BlueTarpStidents.jpg",album:"http://BuildingASchool.org",group:"Formerly known as Blue Tarp School"});
+	myPointSuggest({name:"College Mixte de l'Experience",id:"582001",pt:[18.6142729106,-72.2791780181],icon:"http://google-maps-icons.googlecode.com/files/school.png",details:"About 100 children attend this small (so far free) school, which began in October 2008, founded by Marie Ange Belzine and Jean Marie Mercy.",photo:"http://swag.uwaterloo.ca/~marie/save/Nov18-10BlueTarpStidents.jpg",album:"http://BuildingASchool.org",group:"formerly known as the Blue Tarp School"});
+	myPointSuggest({name:"OLPC (Austria)",id:"581001",pt:[48.2089532817,16.3703680038],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"www.olpc.at",photo:"",album:"",group:""});
+	myPointSuggest({name:"Gary C Martin",id:"580001",pt:[55.9560302574,-3.17546844482],icon:"DEFAULT",details:"Software developer",photo:"",album:"",group:""});
+	myPointSuggest({name:"Mid-Michigan XO lending library",id:"579001",pt:[43.0747901842,-83.45703125],icon:"http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png",details:"Lending library for XO-1 in Mid-Michigan",photo:"",album:"",group:"Mid-Michigan"});
+	myPointSuggest({name:"Yanjmaa B",id:"342001",pt:[47.9236787212,106.895240317],icon:"https://sites.google.com/site/olpcau/home/Greensmall1.png",details:"Head of project unit Mongolia",photo:"http://www.codewiz.org/wiki/pictures/conf/olpc-sf-summit-2010/IMG_0436.JPG",album:"",group:"http://laptop.gov.mn"});
+	myPointSuggest({name:"Unit project OLPC in Mongolia",id:"570002",pt:[47.9209166412,106.922519207],icon:"http://google-maps-icons.googlecode.com/files/bigcity.png",details:"room 312, National IT Park, sity UlaanBaatar ",photo:"",album:"",group:"www.laptop.gov.mn"});
+	myPointSuggest({name:"Darkhan Uul aimag",id:"544002",pt:[49.4786248322,105.913772583],icon:"http://google-maps-icons.googlecode.com/files/places-visited.png",details:"4 ?????? ?????????? 2-5 ?????? 413 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Umnugovi aimaag",id:"482004",pt:[42.9673604198,106.120758057],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"???? ???? ????? ?????????? 2-5 ?????? ?????? 119 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Umnugovi aimag",id:"541002",pt:[44.0846428343,103.551368713],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"?????? ????? ?????????? 2-5 ?????? 212 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Tuv aimag",id:"561002",pt:[46.759511314,107.095794678],icon:"http://google-maps-icons.googlecode.com/files/daycare.png",details:"?????????? ????? ?????????? 2-5 ?????? 32 ???????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Govisumber aimag",id:"551002",pt:[46.3604318912,108.361611037],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"2-? ?????????? 2-5 ?????? 314 ????????? ???????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Donrnogovi aimag",id:"567001",pt:[44.8872530438,110.116676955],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"?????????? 3-? ?????????? 2-5 ?????? 342 ????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Dornod aimag",id:"573001",pt:[48.0760303801,114.535293579],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????????? 11 ?????? ?????????? 2-5 ?????? 227 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Sukhbaatar aimag",id:"543003",pt:[46.677346911,113.277815996],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"?????? ????? I ?????????? 2-5 ?????? 186 ??????????? ???????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Khan Khentii CS ",id:"566001",pt:[47.3226408799,110.654830156],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"??? ?????? ????????? ?????????? 2-5 ?????? 330 ???????? ??????? ?????.",photo:"",album:"",group:"??? ??????"});
+	myPointSuggest({name:"Zavkhan aimag",id:"504004",pt:[47.7334085013,96.8507250977],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???????? 4 ?????? ?????????? 2-5 ?????? 199 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Uvs aimag",id:"565002",pt:[49.9901685486,92.0668658447],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???????? ???????? ????? ?????????? 2-5 ?????? 182 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Khovd aimag",id:"486003",pt:[48.0143598678,91.6363391113],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"???? ????? ?????????? 2-5 ?????? ?????? 452 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	myPointSuggest({name:"Govi-Altai aimag",id:"516003",pt:[46.3711862952,96.262956543],icon:"http://google-maps-icons.googlecode.com/files/world.png",details:"????? ????????? ?????????? 2-5 ?????? ?????? 164 ??????????? ??????? ?????.",photo:"",album:"",group:""});
+	infoWindow = new google.maps.InfoWindow();
+	google.maps.event.addListener(map,'click',function(){infoWindow.close()});
+	for(var mOrg=0;mOrg<orgs.length;mOrg++){
+		if(orgs[mOrg].ajax){
+			for(var mAj=0;mAj<orgs[mOrg].ajax.length;mAj++){
+				if(specialRegion){
+					if(orgs[mOrg].ajax[mAj].pt[0] > specialRegion.getBounds().getNorthEast().lat()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[0] < specialRegion.getBounds().getSouthWest().lat()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[1] > specialRegion.getBounds().getNorthEast().lng()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[1] < specialRegion.getBounds().getSouthWest().lng()){continue;}
+				}
+				var marker=new google.maps.Marker({
+					position:new google.maps.LatLng(orgs[mOrg].ajax[mAj].pt[0],orgs[mOrg].ajax[mAj].pt[1]),
+					map:map,
+					icon:"http://maps.google.com/mapfiles/ms/icons/postoffice-jp.png",
+					title:orgs[mOrg].ajax[mAj].name
+				});
+				addQuery(marker,orgs[mOrg].ajax[mAj].query);
+			}
+		}
+		initMyPointsLength = myPoints.length;
+		if(orgs[mOrg].pts){
+			if(orgs[mOrg].pts.length>0){
+				for(var mPt=0;mPt<orgs[mOrg].pts.length;mPt++){
+					if(specialRegion){
+						if(orgs[mOrg].pts[mPt].pt[0] > specialRegion.getBounds().getNorthEast().lat()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[0] < specialRegion.getBounds().getSouthWest().lat()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[1] > specialRegion.getBounds().getNorthEast().lng()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[1] < specialRegion.getBounds().getSouthWest().lng()){continue;}
+					}
+					var randIconI=Math.floor(Math.random()*18);
+					var randIcon;
+					switch(randIconI){
+						case 0:
+							randIcon="http://google-maps-icons.googlecode.com/files/computer.png";
+							break;
+						case 1:
+							randIcon="http://google-maps-icons.googlecode.com/files/world.png";
+							break;
+						case 2:
+							randIcon="http://google-maps-icons.googlecode.com/files/industrialmuseum.png";
+							break;
+						case 3:
+							randIcon="http://google-maps-icons.googlecode.com/files/music-classical.png";
+							break;
+						case 4:
+							randIcon="http://google-maps-icons.googlecode.com/files/postal.png";
+							break;
+						case 5:
+							randIcon="http://google-maps-icons.googlecode.com/files/housesolarpanel.png";
+							break;
+						case 6:
+							randIcon="http://google-maps-icons.googlecode.com/files/park.png";
+							break;
+						case 7:
+							randIcon="http://google-maps-icons.googlecode.com/files/laboratory.png";
+							break;
+						case 8:
+							randIcon="http://google-maps-icons.googlecode.com/files/university.png";
+							break;
+						case 9:
+							randIcon="http://google-maps-icons.googlecode.com/files/daycare.png";
+							break;
+						case 10:
+							randIcon="http://google-maps-icons.googlecode.com/files/school.png";
+							break;
+						case 11:
+							randIcon="http://google-maps-icons.googlecode.com/files/bookstore.png";
+							break;
+						case 12:
+							randIcon="http://google-maps-icons.googlecode.com/files/workoffice.png";
+							break;
+						case 13:
+							randIcon="http://google-maps-icons.googlecode.com/files/photo.png";
+							break;
+						case 14:
+							randIcon="http://google-maps-icons.googlecode.com/files/bigcity.png";
+							break;
+						case 15:
+							randIcon="http://google-maps-icons.googlecode.com/files/places-unvisited.png";
+							break;
+						case 16:
+							randIcon="http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png";
+							break;
+						case 17:
+							randIcon="http://google-maps-icons.googlecode.com/files/flowers.png";
+							break;
+					}
+					var marker=new google.maps.Marker({
+						position:new google.maps.LatLng(orgs[mOrg].pts[mPt].pt[0],orgs[mOrg].pts[mPt].pt[1]),
+						map:map,
+						icon:randIcon,
+						title:orgs[mOrg].pts[mPt].name
+					});
+					orgs[mOrg].pts[mPt].icon=randIcon;
+					myPoints.push(orgs[mOrg].pts[mPt]);
+					orgs[mOrg].pts[mPt].id = "mOrg:" + mOrg + ":mPt:" + mPt;
+					var contentString = setupContent(myPoints.length-1);
+					addInfo(marker,contentString);
+				}
+			}
+		}
+	}
+	
+	for(var myPt=0;myPt<initMyPointsLength;myPt++){
+		var marker;
+		if(myPoints[myPt].icon.toLowerCase().indexOf("default") != -1){
+			myPoints[myPt].icon="";
+		}
+		if(myPoints[myPt].icon.length > 6){
+			marker=new google.maps.Marker({
+				position:new google.maps.LatLng(myPoints[myPt].pt[0],myPoints[myPt].pt[1]),
+				map:map,
+				icon:myPoints[myPt].icon,
+				title:myPoints[myPt].name
+			});
+		}
+		else{
+			var randIconI=Math.floor(Math.random()*18);
+			var randIcon;
+			switch(randIconI){
+			case 0:
+				randIcon="http://google-maps-icons.googlecode.com/files/computer.png";
+				break;
+			case 1:
+				randIcon="http://google-maps-icons.googlecode.com/files/world.png";
+				break;
+			case 2:
+				randIcon="http://google-maps-icons.googlecode.com/files/industrialmuseum.png";
+				break;
+			case 3:
+				randIcon="http://google-maps-icons.googlecode.com/files/music-classical.png";
+				break;
+			case 4:
+				randIcon="http://google-maps-icons.googlecode.com/files/postal.png";
+				break;
+			case 5:
+				randIcon="http://google-maps-icons.googlecode.com/files/housesolarpanel.png";
+				break;
+			case 6:
+				randIcon="http://google-maps-icons.googlecode.com/files/park.png";
+				break;
+			case 7:
+				randIcon="http://google-maps-icons.googlecode.com/files/laboratory.png";
+				break;
+			case 8:
+				randIcon="http://google-maps-icons.googlecode.com/files/university.png";
+				break;
+			case 9:
+				randIcon="http://google-maps-icons.googlecode.com/files/daycare.png";
+				break;
+			case 10:
+				randIcon="http://google-maps-icons.googlecode.com/files/school.png";
+				break;
+			case 11:
+				randIcon="http://google-maps-icons.googlecode.com/files/bookstore.png";
+				break;
+			case 12:
+				randIcon="http://google-maps-icons.googlecode.com/files/workoffice.png";
+				break;
+			case 13:
+				randIcon="http://google-maps-icons.googlecode.com/files/photo.png";
+				break;
+			case 14:
+				randIcon="http://google-maps-icons.googlecode.com/files/bigcity.png";
+				break;
+			case 15:
+				randIcon="http://google-maps-icons.googlecode.com/files/places-unvisited.png";
+				break;
+			case 16:
+				randIcon="http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png";
+				break;
+			case 17:
+				randIcon="http://google-maps-icons.googlecode.com/files/flowers.png";
+				break;
+			}
+			marker=new google.maps.Marker({
+				position:new google.maps.LatLng(myPoints[myPt].pt[0],myPoints[myPt].pt[1]),
+				map:map,
+				icon:randIcon,
+				title:myPoints[myPt].name
+			});		
+		}
+		if(!myPoints[myPt].group){myPoints[myPt].group="";}
+		myPoints[myPt].marker=marker;
+		contentString=setupContent(myPt);
+		addInfo(marker,contentString);
+	}
+	
+	if(gup("id")){
+		//direct link to point
+		var ptID=gup("id");
+		for(var mPt=0;mPt<myPoints.length;mPt++){
+			if(myPoints[mPt].id==ptID){
+				if(!specialRegion){
+					map.setOptions({center:myPoints[mPt].marker.getPosition(),zoom:12});
+				}
+				infoWindow.setContent(setupContent(mPt));
+				infoWindow.open(map,myPoints[mPt].marker);
+				break;
+			}
+		}
+	}
+	
+	// Create a div to hold the control.
+	var controlDiv = document.createElement('div');
+
+	// Set CSS styles for the DIV containing the control
+	// Setting padding to 5 px will offset the control
+	// from the edge of the map
+	controlDiv.style.padding = '5px';
+
+	// Set CSS for the control border
+	var controlUI = document.createElement('div');
+	controlUI.style.backgroundColor = 'white';
+	controlUI.style.borderStyle = 'solid';
+	controlUI.style.borderWidth = '2px';
+	controlUI.style.cursor = 'pointer';
+	controlUI.style.textAlign = 'center';
+	controlDiv.appendChild(controlUI);
+
+	// Set CSS for the control interior
+	var controlText = document.createElement('input');
+	controlText.id='searchbox';
+	controlText.style.fontFamily = 'Arial,sans-serif';
+	controlText.style.fontSize = '14px';
+	controlText.style.paddingLeft = '10px';
+	controlText.style.paddingRight = '10px';
+	controlText.style.fontSize="15pt";
+	controlText.width="30%";
+	controlText.onkeydown=function(event){
+		if(event.keyCode==13){
+			searchSearchBox();
+		}
+	};
+	controlUI.appendChild(controlText);
+	
+	var controlBtn = document.createElement('input');
+	controlBtn.type='button';
+	controlBtn.value='Search';
+	controlBtn.style.verticalAlign="middle";
+	controlBtn.style.fontFamily = 'Arial,sans-serif';
+	controlBtn.style.fontSize = '12px';
+	controlBtn.style.paddingLeft = '4px';
+	controlBtn.style.paddingRight = '4px';
+	controlUI.appendChild(controlBtn);
+	
+	geocoder = new google.maps.Geocoder();
+	
+	google.maps.event.addDomListener(controlBtn,'click',function(){
+		searchSearchBox();
+	});
+	map.controls[google.maps.ControlPosition.TOP].push(controlDiv);
+
+	map.controls[google.maps.ControlPosition.RIGHT].push(getId('fb-login-div'));
+	
+	var e = document.createElement('script');
+	e.type = 'text/javascript';
+	e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+	e.async = true;
+	getId('fb-root').appendChild(e);
+}
+function gup(nm){nm=nm.replace(/[\[]/,"\\[").replace(/[\]]/,"\\]");var rxS="[\?&]"+nm+"=([^&#]*)";var rx=new RegExp(rxS);var rs=rx.exec(window.location.href);if(!rs){return null;}else{return rs[1];}}
+function searchSearchBox(){
+	var search = getId("searchbox").value;
+	var uniqueGroup = null;
+	for(var grp=0;grp<orgs.length;grp++){
+		if(orgs[grp].name.toLowerCase().indexOf(search.toLowerCase()) != -1){
+			if(!uniqueGroup){
+				uniqueGroup = orgs[grp];
+			}
+			else{
+				uniqueGroup = -1;
+				break;
+			}
+		}
+		else if(orgs[grp].details){
+			if(orgs[grp].details.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(!uniqueGroup){
+					uniqueGroup = orgs[grp];
+				}
+				else{
+					uniqueGroup = -1;
+					break;
+				}
+			}
+		}
+	}
+	if(uniqueGroup){
+		if(uniqueGroup!=-1){
+			if(uniqueGroup.pts.length == 1){
+				map.setCenter(new google.maps.LatLng(uniqueGroup.pts[0].pt[0],uniqueGroup.pts[0].pt[1]),16);
+			}
+			else if(uniqueGroup.pts.length == 0){
+				map.setCenter(new google.maps.LatLng(uniqueGroup.ajax[0].pt[0],uniqueGroup.ajax[0].pt[1]),16);
+				var qScript=document.createElement("script");
+				qScript.src="http://mapmeld.appspot.com/olpcMAP" + uniqueGroup.ajax[0].query + "&format=js&act=center";
+				document.body.appendChild(qScript);
+			}
+			else{
+				var northMost=uniqueGroup.pts[0].pt[0];
+				var southMost=uniqueGroup.pts[0].pt[0];
+				var eastMost=uniqueGroup.pts[0].pt[1];
+				var westMost=uniqueGroup.pts[0].pt[1];
+				for(var grpPt=1;grpPt<uniqueGroup.pts.length;grpPt++){
+					if(uniqueGroup.pts[grpPt].pt[0] > northMost){
+						northMost=uniqueGroup.pts[grpPt].pt[0];
+					}
+					else if(uniqueGroup.pts[grpPt].pt[0] < southMost){
+						southMost=uniqueGroup.pts[grpPt].pt[0];
+					}
+					if(uniqueGroup.pts[grpPt].pt[1] > eastMost){
+						eastMost=uniqueGroup.pts[grpPt].pt[1];
+					}
+					else if(uniqueGroup.pts[grpPt].pt[1] < westMost){
+						westMost=uniqueGroup.pts[grpPt].pt[1];
+					}
+				}
+				map.fitBounds(new google.maps.LatLngBounds(
+					new google.maps.LatLng(southMost,westMost),
+					new google.maps.LatLng(northMost,eastMost)
+				));
+			}
+			return;
+		}
+	}
+	var uniquePoint = null;
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if( myPoints[mPt].name.toLowerCase().indexOf(search.toLowerCase()) != -1){
+			if(!uniquePoint){
+				uniquePoint = myPoints[mPt];
+			}
+			else{
+				uniquePoint = -1;
+				break;
+			}
+		}
+		if(myPoints[mPt].group){
+			if( myPoints[mPt].group.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(!uniquePoint){
+					uniquePoint = myPoints[mPt];
+				}
+				else{
+					uniquePoint = -1;
+					break;
+				}
+			}
+		}
+		if(myPoints[mPt].details){
+			if(myPoints[mPt].details.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(!uniquePoint){
+					uniquePoint = myPoints[mPt];
+				}
+				else{
+					uniquePoint = -1;
+					break;
+				}
+			}
+		}
+	}
+	for(var mOrg=0;mOrg<orgs.length;mOrg++){
+		for(var mPt=0;mPt<orgs[mOrg].pts.length;mPt++){
+			if( orgs[mOrg].pts[mPt].name.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(!uniquePoint){
+					uniquePoint = orgs[mOrg].pts[mPt];
+				}
+				else{
+					uniquePoint = -1;
+					break;
+				}
+			}
+			else if(orgs[mOrg].pts[mPt].details){
+				if(orgs[mOrg].pts[mPt].details.toLowerCase().indexOf(search.toLowerCase()) != -1){
+					if(!uniquePoint){
+						uniquePoint = orgs[mOrg].pts[mPt];
+					}
+					else{
+						uniquePoint = -1;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if(uniquePoint){
+		if(uniquePoint != -1){
+			map.setCenter(new google.maps.LatLng(uniquePoint.pt[0],uniquePoint.pt[1]),16);
+			return;
+		}
+	}
+	geocoder.geocode( { 'address':search},
+		function(results,status) {
+			if (status == google.maps.GeocoderStatus.OK){
+				map.fitBounds(results[0].geometry.viewport);
+			}
+		}
+	);
+}
+var lastOpen=null;
+function addInfo(m,content){
+	google.maps.event.addListener(m,'click',function(){
+		lastOpen=m;
+		var manyMarkers=getNearbyMarkers(m.getPosition());
+		//var manyMarkers=[];
+		if(manyMarkers.length > 1){
+			var pageViewer;
+			pageViewer="<div style='min-width:280px;'><div style='margin-left:auto;margin-right:auto;'>Many at this location: <a href='#' onclick='map.setOptions({center:new google.maps.LatLng(" + m.getPosition().lat() + ","+ m.getPosition().lng() + "),zoom:"+(map.getZoom()+2)+"});infoWindow.close();'>Zoom</a><br/>";
+			var tablesOn=false;
+			if(manyMarkers.length > 10){
+				tablesOn=true;
+				pageViewer+="<table><tr><td>";
+			}
+			pageViewer+="<ul>";
+			for(var mPt=0;mPt<manyMarkers.length;mPt++){
+				if((tablesOn)&&(mPt%10==0)&&(mPt!=0)){
+						if(mPt > 30){break;}
+						pageViewer+='</ul></td><td><ul>';
+				}
+				pageViewer+='<li><a href="#" onclick="loadNearby('+"'"+manyMarkers[mPt].id+"'"+')">'+manyMarkers[mPt].name+'</a></li>';
+			}
+			pageViewer+="</ul>";
+			if(tablesOn){
+				pageViewer+="</td></tr></table>";
+			}
+			infoWindow.setContent(pageViewer+"</div></div>");
+		}
+		else{
+			if(joinNetwork){
+				infoWindow.setContent(content+"<br/><a href='#' onclick='suggestEdit()'>Suggest Edit</a>");
+			}
+			else{
+				infoWindow.setContent(content);
+			}
+		}
+		infoWindow.open(map,m);
+	});
+}
+function getNearbyMarkers(latlng){
+	var nMarkers=[];
+	var zoomFactor = 10 * Math.max(1, Math.pow(2,15-map.getZoom()) );
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(!myPoints[mPt].marker){continue;}
+		if( Math.abs(latlng.lat() - myPoints[mPt].marker.getPosition().lat()) < ( 0.0001 * zoomFactor )){
+			if( Math.abs(latlng.lng() - myPoints[mPt].marker.getPosition().lng()) < ( 0.0001 * zoomFactor )){
+				nMarkers.push(myPoints[mPt]);
+			}
+		}
+	}
+	return nMarkers;
+}
+function loadNearby(markId){
+	var m,content;
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(myPoints[mPt].id == markId){
+			m = myPoints[mPt].marker;
+			content = setupContent(mPt);
+			break;
+		}
+	}
+	infoWindow.setContent(content);
+	infoWindow.open(map,m);
+}
+function myPointSuggest(pointObj){
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(myPoints[mPt].id==pointObj.id){
+			myPoints[mPt]=pointObj;
+			return;
+		}
+	}
+	myPoints.push(pointObj);
+}
+function suggestEdit(){
+	editorEmail=null;
+	for(var mrk=0;mrk<myPoints.length;mrk++){
+		if(myPoints[mrk].marker == lastOpen){
+			openEditor(mrk,false);
+			return;
+		}
+	}
+}
+function addQuery(mrkr,queryType){
+	google.maps.event.addListener(mrkr,'click',function(){
+		mrkr.setMap(null);
+		var jsonScript=document.createElement("script")
+		jsonScript.src="http://mapmeld.appspot.com/olpcMAP" + queryType + "&format=js";
+		getId("head").appendChild(jsonScript);
+	});
+}
+function login(){
+	getId("coverwindow").style.display="block";
+}
+var joinNetwork=false;
+var clickMoveMarker=null;
+var reopenListener,flistener;
+var editorEmail=null;
+function joinNetworkMode(){
+	joinNetwork=true;
+	clickMoveMarker=new google.maps.Marker({
+		position:map.getCenter(),
+		draggable:true,
+		map:map
+	});
+	var content="<div style='text-align:center'><h3>Join Our Network</h3>Click the map or drag this marker to set your position.<hr/>Email:<input id='editorEmail' onkeypress='plantMarkerShow(event)'/><input id='plantMarkerButton' style='display:none;' type='button' value='Plant Marker' onclick='plantMarker()'/></div><br/><hr/>";
+	infoWindow.setContent(content);
+	infoWindow.open(map,clickMoveMarker);	
+	reopenListener = google.maps.event.addListener(clickMoveMarker,'dragend',function(){
+		infoWindow.close();
+		var content="<div style='text-align:center'><h3>Join Our Network</h3>Click the map or drag this marker to set your position.<hr/>Email:<input id='editorEmail' onkeypress='plantMarkerShow(event)'/><input id='plantMarkerButton' style='display:none' type='button' value='Plant Marker' onclick='plantMarker()'/></div><br/><hr/>";
+		infoWindow.setContent(content);
+		infoWindow.open(map,clickMoveMarker);
+	});
+}
+function plantMarkerShow(event){
+	try{
+		getId('plantMarkerButton').style.display="block";
+		getId('plantMarkerButton').style.display="inline";
+		getId('plantMarkerButton').style.position="inline";
+	}
+	catch(e){}
+}
+function plantMarker(){
+	editorEmail = getId("editorEmail").value;
+	google.maps.event.removeListener(reopenListener);
+	//infoWindow.close();
+	myPoints.push({marker:clickMoveMarker,group:"",pt:[clickMoveMarker.getPosition().lat(),clickMoveMarker.getPosition().lng()],icon:"DEFAULT",details:"Describe this place or person",name:"Edit Me"});
+	openEditor(myPoints.length-1,false);
+}
+var fullIconString="<table><tr>";
+var fullIconList=["https://sites.google.com/site/olpcau/home/Orangesmall.png","https://sites.google.com/site/olpcau/home/Greensmall1.png","https://sites.google.com/site/olpcau/home/Bluesmall.png","https://sites.google.com/site/olpcau/home/Pinksmall.png","http://mapmeld.appspot.com/xo-red.png","http://mapmeld.appspot.com/xo-brown.png","http://mapmeld.appspot.com/xo-yellow.png","http://google-maps-icons.googlecode.com/files/computer.png","http://google-maps-icons.googlecode.com/files/world.png","http://google-maps-icons.googlecode.com/files/industrialmuseum.png","http://google-maps-icons.googlecode.com/files/music-classical.png","http://google-maps-icons.googlecode.com/files/postal.png","http://google-maps-icons.googlecode.com/files/housesolarpanel.png","http://google-maps-icons.googlecode.com/files/park.png","http://google-maps-icons.googlecode.com/files/laboratory.png","http://google-maps-icons.googlecode.com/files/university.png","http://google-maps-icons.googlecode.com/files/daycare.png","http://google-maps-icons.googlecode.com/files/school.png","http://google-maps-icons.googlecode.com/files/bookstore.png","http://google-maps-icons.googlecode.com/files/workoffice.png","http://google-maps-icons.googlecode.com/files/photo.png","http://google-maps-icons.googlecode.com/files/bigcity.png","http://google-maps-icons.googlecode.com/files/places-unvisited.png","http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png","http://google-maps-icons.googlecode.com/files/flowers.png","http://google-maps-icons.googlecode.com/files/waterwellpump.png","http://google-maps-icons.googlecode.com/files/pyramid-southam.png","http://google-maps-icons.googlecode.com/files/glacier.png","http://google-maps-icons.googlecode.com/files/places-visited.png","http://google-maps-icons.googlecode.com/files/pagoda.png","http://google-maps-icons.googlecode.com/files/forest.png","http://google-maps-icons.googlecode.com/files/fossils.png","http://google-maps-icons.googlecode.com/files/animals.png","http://google-maps-icons.googlecode.com/files/pens.png","http://google-maps-icons.googlecode.com/files/doctor.png","http://google-maps-icons.googlecode.com/files/firstaid.png","http://google-maps-icons.googlecode.com/files/home.png","http://google-maps-icons.googlecode.com/files/cluster.png","http://google-maps-icons.googlecode.com/files/regroup.png","http://google-maps-icons.googlecode.com/files/recycle.png","http://google-maps-icons.googlecode.com/files/wifi.png","http://google-maps-icons.googlecode.com/files/fireworks.png","http://google-maps-icons.googlecode.com/files/music-rock.png","http://google-maps-icons.googlecode.com/files/museum.png","http://google-maps-icons.googlecode.com/files/zoo.png","http://google-maps-icons.googlecode.com/files/expert.png","http://google-maps-icons.googlecode.com/files/communitycentre.png"];
+for(var fi=0;fi<fullIconList.length;fi++){
+	if(fi==0){
+		fullIconString+="<td><img src='"+fullIconList[fi]+"' onclick='changeIcon(-1)'/>";	
+	}
+	else{
+		if(fi%12==0){
+			fullIconString+="</tr><tr>";
+		}
+		fullIconString+="<td><img src='"+fullIconList[fi]+"' onclick='changeIcon("+fi+")'/>";
+	}
+}
+function editorPg(gotoPg){
+	getId("editor-pg-"+(gotoPg-1)).style.display="none";
+	getId("editor-pg-"+gotoPg).style.display="block";
+	getId("editor-pg-button").onclick=function(){ editorPg(gotoPg+1); }
+	if(gotoPg < 3){
+		getId("editor-pg-button").value="> Next >";
+	}
+	else{
+		getId("editor-pg-button").style.display="none";
+	}
+}
+function changeIcon(){
+	var iconSelection="<table><tr>";
+	iconSelection+="<td><img src='"+ "" +"'/></td>";
+	iconSelection+="</tr></table>";
+	infoWindow.setContent(iconSelection);
+	infoWindow.open();
+}
+function changeIcon(num){
+	if(num){
+		if(num==-1){
+			getId("editorIcon").value=fullIconList[0];		
+		}
+		else{
+			getId("editorIcon").value=fullIconList[num];
+		}
+	}
+	else{
+		//icon select for user's default
+	}
+}
+fullIconString+="</tr></table>";
+function openEditor(mIndex,isNew){
+	var m = myPoints[mIndex];
+	var editorString="<div style='width:500px;height:370px;font-size:10pt;' width='500' height='450'>";
+	if(isNew){
+		editorString+="<div id='editor-pg-1' class='editPage'>Name<input id='editorTitle' style='width:70%;'/><hr/>";
+		editorString+="<textarea id='editorText' style='width:70%;'>Describe this place or person</textarea><hr/>";
+		editorString+="Group name:<br/><input id='editorGroup' style='width:70%;'/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Select Icon<hr/><input id='editorIcon' style='width:70%;'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;'>Best photo:<br/><input id='editorPhoto' style='width:70%;'/><hr/>Photo album link<br/><input id='editorAlbum' style='width:70%;'/></div>";
+		editorString+="<input id='editor-pg-button' type='button' value='> Set Icon >' onclick='editorPg(2)'/>";
+	}
+	else{
+		if(!myPoints[mIndex].photo){myPoints[mIndex].photo="";}
+		if(!myPoints[mIndex].album){myPoints[mIndex].album="";}
+		editorString+="<div id='editor-pg-1' class='editPage'>Name<input id='editorTitle' value='"+myPoints[mIndex].name+"' style='width:70%;'/><hr/>";
+		editorString+="<textarea id='editorText' style='width:80%;'>"+myPoints[mIndex].details+"</textarea><hr/>";
+		editorString+="Group name:<br/><input id='editorGroup' style='width:70%;' value='"+myPoints[mIndex].group+"'/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Select Icon<hr/><input id='editorIcon' style='width:70%;' value='"+myPoints[mIndex].icon+"'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;'>Best photo:<br/><input id='editorPhoto' style='width:70%;' value='"+myPoints[mIndex].photo+"'/><hr/>Photo album link<br/><input id='editorAlbum' style='width:70%;' value='"+myPoints[mIndex].album+"'/></div>";
+		editorString+="<input id='editor-pg-button' type='button' value='> Set Icon >' onclick='editorPg(2)'/>";
+	}
+	editorString+="<hr/><input type='button' value='Save Edits' onclick='saveEdits("+mIndex+")'/></div></div>";
+	infoWindow.setContent(editorString);
+	infoWindow.open(map,m.marker);
+}
+function contactMode(){
+	getId("coverwindow").style.display="block";
+}
+var sendPtIndex;
+function saveEdits(mIndex){
+	if(flistener){
+		google.maps.event.removeListener(flistener);
+		flistener=null;
+	}
+	myPoints[mIndex].name=getId("editorTitle").value;
+	myPoints[mIndex].details=getId("editorText").value;
+	myPoints[mIndex].group=getId("editorGroup").value;
+	myPoints[mIndex].photo=getId("editorPhoto").value;
+	myPoints[mIndex].album=getId("editorAlbum").value;
+	myPoints[mIndex].email=editorEmail;
+	if(getId("editorIcon").value != myPoints[mIndex].icon){
+		var newIconMarker;
+		if(myPoints[mIndex].marker){
+			newIconMarker=new google.maps.Marker({
+				position:myPoints[mIndex].marker.getPosition(),
+				map:map,
+				icon:getId("editorIcon").value,
+				title:myPoints[mIndex].name
+			});
+		}
+		else{
+			newIconMarker=new google.maps.Marker({
+				position:new google.maps.LatLng(myPoints[mIndex].pt[0],myPoints[mIndex].pt[1]),
+				map:map,
+				icon:getId("editorIcon").value,
+				title:myPoints[mIndex].name
+			});		
+		}
+		myPoints[mIndex].marker.setMap(null);
+		myPoints[mIndex].icon=getId("editorIcon").value;
+		addInfo(newIconMarker,setupContent(mIndex));
+		myPoints[mIndex].marker = newIconMarker;
+	}
+	sendPtIndex = mIndex;
+	var sendPtScript=document.createElement("script");
+	sendPtScript.src="http://mapmeld.appspot.com/olpcMAP/makePoint?id=" + myPoints[mIndex].id + "&point=" + myPoints[mIndex].marker.getPosition().lat() + "," + myPoints[mIndex].marker.getPosition().lng();
+	sendPtScript.src+="&name="+myPoints[mIndex].name+"&details="+myPoints[mIndex].details+"&group="+myPoints[mIndex].group+"&photo="+myPoints[mIndex].photo+"&album="+myPoints[mIndex].album + "&icon=" + myPoints[mIndex].icon + "&mail=" + myPoints[mIndex].email;
+	getId("head").appendChild(sendPtScript);
+	infoWindow.close();
+	addInfo(myPoints[mIndex].marker,setupContent(mIndex));
+}
+function editMode(){
+	joinNetwork=true;
+	alert("You now can suggest edits to any marker. Be careful!");
+}
+function infoSlice(index,mIndex){
+	for(var n=0;n<3;n++){
+		if(index==n){
+			getId("infoWindow-"+n).style.display="block";
+		}
+		else{
+			getId("infoWindow-"+n).style.display="none";		
+		}
+	}
+	if(index==0){
+		var markerData = myPoints[mIndex];
+		getId("infoWindow-0").innerHTML="Link to this point<br/><span style='font-size:10pt;'>http://olpcMAP.net?id=" + markerData.id + "</span><hr/>Link to nearby points:<br/><span style='font-size:10pt;'>http://olpcMAP.net?id="+markerData.id+"&km-distance=40</span><hr/>Share image of this zoom:<br/><span style='font-size:10pt'>http://olpcMAP.net?map=image&llregion=" + map.getBounds().getNorthEast().lat().toFixed(4) + "," + map.getBounds().getNorthEast().lng().toFixed(4) + "," + map.getBounds().getSouthWest().lat().toFixed(4) + "," + map.getBounds().getSouthWest().lng().toFixed(4) + "</span>";
+	}
+	if(index == 1){
+		//contact form
+		if(myPoints[mIndex].id.indexOf(":") == -1){
+			getId("infoWindow-contact").src="http://mapmeld.appspot.com/olpcMAP/contacter?id=" + myPoints[mIndex].id;
+		}
+		else{
+			var myGroup = orgs[myPoints[mIndex].id.split(":")[1]];
+			if(myGroup.website){
+				getId("infoWindow-contact").src="http://olpcMAP.net/contacter?web=" + myGroup.website;
+			}
+			else if(myGroup.name.indexOf("http") != -1){
+				getId("infoWindow-contact").src="http://olpcMAP.net/contacter?web=" + myGroup.name;
+			}
+			else{
+				getId("infoWindow-contact").src="http://olpcMAP.net/contacter?web=http://www.google.com?q=" + myPoints[mIndex].name;
+			}
+		}
+	}
+}
+function setupContent(mIndex){
+	var markerData = myPoints[mIndex];
+	var contentString;
+	if(joinNetwork){
+		contentString = "<h4><a class='tab-select' href='#' onclick='infoSlice(2,"+mIndex+")'>"+markerData.name+"</a><a class='tab' onclick='infoSlice(0,"+mIndex+")' href='#'>Links</a><a class='tab' onclick='infoSlice(1,"+mIndex+")' href='#'>Contact</a><a class='tab' href='#' onclick='openEditor("+mIndex+",false)'>Edit</a></h4>";
+	}
+	else{
+		contentString = "<h4><a class='tab-select' href='#' onclick='infoSlice(2,"+mIndex+")'>"+markerData.name+"</a><a class='tab' onclick='infoSlice(0,"+mIndex+")' href='#'>Links</a><a class='tab' onclick='infoSlice(1,"+mIndex+")' href='#'>Contact</a></h4>"
+	}
+	contentString+="<div id='infoWindow-2'><table><tr>";
+	var width="250";
+	if(!markerData.photo){
+		width="450";
+	}
+	contentString += "<td style='font-size:8pt;' width='"+width+"'>";
+	contentString += "<span style='font-weight:bold'>From "+markerData.group+"</span>";
+	contentString += "<hr/>";
+	if(markerData.details){
+		contentString += markerData.details;
+	}
+	else{
+		contentString += "Please help us add details to this location";
+	}
+	contentString += "</td>";
+	if(markerData.photo){
+		if(markerData.album){
+			contentString += "<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></a></div></td>";		
+		}
+		else{
+			contentString += "<td><div id='mediadiv'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></div></td>";
+		}
+	}
+	else{
+		if(markerData.album){
+			contentString += "<td width='30pt'><a href='"+markerData.album+"' target='_blank'>Photo Album</a></td>";
+		}
+		else{
+			contentString += "<td width='10'></td>";
+		}
+	}
+	contentString += "</tr></table></div>";
+	contentString += "<div id='infoWindow-0' style='display:none;'></div>";
+	contentString += "<div id='infoWindow-1' style='display:none;'><iframe id='infoWindow-contact' src='' style='border:none;' height='300' width='400'></iframe></div>";
+	return contentString;
+}
+function closeCoverWindow(){
+	getId("coverwindow").style.display="none";
+}
+function getId(id){return document.getElementById(id);}
+	</script>
+	<style type='text/css'>
+html{width:100%;height:100%;}
+body{width:100%;height:100%;margin:0px;padding:0px;}
+div.main{
+	background-color:#DDDAA0;
+}
+span.navoption a{
+	color:#000000;
+	text-decoration:none;
+}
+span.navoption a:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+span.navoption:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+a.tab{
+	font-size:11pt;
+	margin-left:8px;
+	margin-right:8px;
+	font-weight:normal;
+}
+a.tab-select{
+	text-decoration:none;
+	color:#500;
+	font-weight:bold;
+	margin-left:8px;
+	margin-right:8px;
+}
+	</style>
+
+</head>
+<body onload="init();">
+	<div class="header">
+		<h3><span style='font-size:1.7em;'>olpcMAP </span>- a geo-social network for the XO,Sugar,and ICT4E</h3>
+		<noscript><h3>Enable JavaScript to view olpcMAP</h3></noscript>
+		<br/>
+	</div>
+	<div class="nav">
+
+		<span class="navoption"><a href="#" onclick="joinNetworkMode()">Join the Map Network</a></span>
+		<span class="navoption"><a href="#" onclick="editMode()">Edit Mode</a></span>
+		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">About</a></span>
+		<span class="navoption"><a href="#" onclick="contactMode()">Contact</a></span>
+	</div>
+	<div id="map" style="height:100%;width:100%;margin:0px;padding:0px;"></div>
+	<div class="main">
+
+		<br/><br/>
+		<br/><br/>
+		<a name="footer"></a>
+		Currently under development.<br/><br/>
+		The goal of the project is to learn more about where education technology is in play,around the world and in our own neighborhoods.
+		<br/><br/>
+		That means we would like to hear stories from you!  Joining the network makes it easier for you to connect with technology projects near you,and makes it possible for experienced and enthusiastic volunteers to find your project and give their support.
+		<br/><br/>
+		We are interested in opening up the network design process to embrace various strategies toward recruiting volunteers and sharing successes,trials,and tribulations of existing deployments.
+		<br/><br/>
+
+		Your privacy will be respected.  You may choose to use initials or an abbreviated name (JS,SQ,John S,Sue Q) but we would like you to register with your contact information so that you can be connected to volunteers.<br/><br/>
+	</div>
+	<div id="coverwindow" style="display:none;position:fixed;margin-left:auto;margin-right:auto;top:100px;border:1px solid black;font-size:16pt;text-align:right;background-color:#333333;">
+		<input type="button" value="X" style="border:1px solid black;color:black;font-size:16pt;" onclick="closeCoverWindow();"/>
+		<br/>
+		<form id="signinform" style="width:100%;background-color:#ffffff; text-align:left; font-size:13pt;" action="http://mapmeld.appspot.com/olpcMAP/contact?id=you" method="POST">
+			E-mail <input id="emaillogin" name="login"/><br/>
+			<!--Password <input id="passwordlogin" type="password" name="password"/><hr/>-->
+
+			Message<br/><textarea name="message" width="300"></textarea>
+			<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Send"/>
+		</form>
+		<div id="infoform"></div>
+	</div>
+	<div id="fb-root"></div>
+	<div id="fb-login-div" style="background-color:white;border:solid 2px #000;cursor:pointer;text-align:center;">
+		<input type="button" value="Log In User" onclick="login();"/><br/><hr/><br/>
+		<a href=""><input type="button" value="Google SignIn"/></a><br/><hr/>
+		<p><fb:login-button autologoutlink="true" onlogin="redirect()"></fb:login-button></p><br/>
+	</div>
+
+	<script type="text/javascript">
+      window.fbAsyncInit = function() {
+        FB.init({appId:'123994207657251',status:true,cookie:true,xfbml:true});
+      };
+	  function redirect(){
+		//window.location="http://mapmeld.appspot.com/olpcMAP?fb_online";
+		facebookUser=true;
+		//FB_RequireFeatures(["XFBML"],function()
+		//{
+		//	FB.Facebook.init("541a5336e083acd2cc0b94c2fea7300d","http://mapmeld.appspot.com/xd_receiver.htm");
+		//});
+	  }
+    </script>
+
+</body>
+</html>

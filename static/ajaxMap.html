@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>AJAX Click Test</title>
+		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript">
+var mymap,myPoints,clickedLL,infoWindow,manyMarkers;
+function startMap(){
+	myPoints=[];
+	mymap = new google.maps.Map(document.getElementById("map_div"), {
+		zoom: 3,
+		center: new google.maps.LatLng(0,0),
+		mapTypeId: google.maps.MapTypeId.HYBRID
+	});
+	google.maps.event.addListener(mymap,'click',function(clickData){
+		myPoints=[];
+		var lScript = document.createElement('script');
+		lScript.type='text/javascript';
+		lScript.src=srcMake(clickData);
+		lScript.onload=showPts;
+		document.body.appendChild(lScript);
+	});
+	infoWindow = new google.maps.InfoWindow();
+}
+function srcMake(clickData){
+	clickedLL = clickData.latLng;
+	var dist = Math.max(1, Math.pow(2,15-mymap.getZoom()) ) / 10;
+	return 'http://mapmeld.appspot.com/olpcMAPolpc/json?format=js&offmap=y&llcenter='+clickedLL.lat()+","+clickedLL.lng()+"&km-distance="+dist;
+}
+function showPts(){
+	var pageViewer;
+	pageViewer="<div style='min-width:280px;'><div style='margin-left:auto;margin-right:auto;'>Many at this location: <a href='#' onclick='mymap.setOptions({center:new google.maps.LatLng(" + clickedLL.lat() + ","+ clickedLL.lng() + "),zoom:"+(mymap.getZoom()+2)+"});infoWindow.close();'>Zoom</a><br/>";
+	var tablesOn=false;
+	if(myPoints.length > 10){
+		tablesOn=true;
+		pageViewer+="<table><tr><td>";
+	}
+	pageViewer+="<ul>";
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if((tablesOn)&&(mPt%10==0)&&(mPt!=0)){
+			if(mPt > 30){break;}
+			pageViewer+='</ul></td><td><ul>';
+		}
+		pageViewer+='<li><a href="#" onclick="loadNearby('+"'"+myPoints[mPt].id+"'"+')">'+myPoints[mPt].name+'</a></li>';
+	}
+	pageViewer+="</ul>";
+	if(tablesOn){
+		pageViewer+="</td></tr></table>";
+	}
+	infoWindow.setContent(pageViewer+"</div></div>");
+	infoWindow.setPosition(clickedLL);
+	infoWindow.open(mymap);
+}
+function loadNearby(markId){
+	var m,content;
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(myPoints[mPt].id == markId){
+			myPoints[mPt].marker=new google.maps.Marker({
+				map:mymap,
+				icon:myPoints[mPt].icon,
+				position:new google.maps.LatLng(myPoints[mPt].pt[0],myPoints[mPt].pt[1]),
+				title:myPoints[mPt].name
+			});
+			m = myPoints[mPt].marker;
+			content = setupContent(mPt);
+			break;
+		}
+	}
+	infoWindow.setContent(content);
+	infoWindow.open(mymap,m);
+}
+function setupContent(mIndex){
+	var markerData = myPoints[mIndex];
+	var contentString;
+	contentString="<h4 style='font-size:11pt;'><a class='tab-select' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:14pt;'>"+markerData.name+"</a>";
+	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Bookmarks</a>";
+	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contact</a>";
+	var titles="";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			if(titles.indexOf(markerData.tabs[mt].split("|")[0]+"|")==-1){
+				contentString+="<a class='tab' onclick='infoSlice("+(mt*1+3)+","+mIndex+","+markerData.tabs[mt].split("|")[1]+")' href='#'>"+markerData.tabs[mt].split("|")[0]+"</a>";
+				titles+=markerData.tabs[mt].split("|")[0]+"|";
+			}
+		}
+	}
+	contentString+="<a class='tab' href='#' onclick='openEditor("+mIndex+",false)'>Edit</a></h4>";
+	//contentString+="<img src='http://mapmeld.appspot.com/plusIcon.gif' style='vertical-align:middle;margin-left:3px;' onclick='addTab("+mIndex+")'/>";
+	contentString+="<div id='infoWindow-2' style='min-height:180px;'><table><tr>";
+	var width="250";
+	if(!markerData.photo){
+		width="450";
+	}
+	contentString += "<td style='font-size:8pt;' width='"+width+"'>";
+	if((markerData.group) && (markerData.group.length > 1)){
+		contentString += "<span style='font-weight:bold'>From "+linkify(markerData.group)+"</span>";
+	}
+	contentString+="<hr/>";
+	if(markerData.details){contentString += linkify(markerData.details)}
+	else{contentString+="Please help us add details to this location"}
+	contentString+="</td>";
+	if(markerData.photo){
+		if(markerData.album){
+			contentString+="<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;' alt='BestPhoto'/><br/>View Photos</a></div></td>";		
+		}
+		else{
+			contentString+="<td><div id='mediadiv'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></div></td>";
+		}
+	}
+	else{
+		if(markerData.album){
+			contentString+="<td width='30pt'><a href='"+markerData.album+"' target='_blank'>View Photos</a></td>";
+		}
+		else{
+			contentString+="<td width='10'></td>";
+		}
+	}
+	contentString+="</tr></table></div>";
+	contentString+="<div id='infoWindow-0' style='display:none;min-height:180px;'></div>";
+	contentString+="<div id='infoWindow-1' style='display:none;min-height:180px;'><iframe id='infoWindow-contact' src='' style='border:none;' height='300' width='400'></iframe></div>";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'></div>";
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'><iframe id='infoFrame-"+(mt*1+3)+"' src='' style='border:none;' height='300' width='400'></iframe></div>";
+		}
+	}
+	return contentString;
+}
+function replaceEach(src,older,newer){
+	while(src.indexOf(older)!=-1){
+		src=src.replace(older,newer);
+	}
+	return src;
+}
+function linkify(unlinkedTxt){
+	unlinkedTxt=replaceEach(unlinkedTxt,"Link:","link:");
+	unlinkedTxt=replaceEach(unlinkedTxt,"link:"," link;");
+	unlinkedTxt=replaceEach(unlinkedTxt," link;"," link:");	
+	while(unlinkedTxt.indexOf("link:") != -1){
+		linkUrl=unlinkedTxt.substring(unlinkedTxt.indexOf("link:")+5,unlinkedTxt.length);
+		linkAfter='';
+		if(linkUrl.indexOf(" ")!=-1){
+			linkUrl=linkUrl.substring(0,linkUrl.indexOf(" "));
+			linkAfter=unlinkedTxt.substring(unlinkedTxt.indexOf("link:")+5+linkUrl.length);
+		}
+		else if(linkUrl.indexOf("link:")!=-1){
+			linkUrl=linkUrl.substring(0,linkUrl.indexOf("link:"));
+			linkAfter=unlinkedTxt.substring(unlinkedTxt.indexOf("link:")+5+linkUrl.length);
+		}
+		if(linkUrl.indexOf("http")==-1){
+			linkUrl="http://"+linkUrl;
+		}
+		unlinkedTxt=unlinkedTxt.substring(0,unlinkedTxt.indexOf("link:")) + "<a target='_blank' href='" + linkUrl + "'>" + linkUrl + "</a>" + linkAfter;
+	}
+	return unlinkedTxt;
+}
+		</script>
+		<style type="text/css">
+html{height:100%;width:100%;font-family:arial;}
+body{height:95%;width:95%;}
+table img{max-height:150px;max-width:150px;}
+		</style>
+	</head>
+	<body onload="startMap()">
+		<div id="map_div" style="width:100%;height:100%;"></div>
+	</body>
+</html>

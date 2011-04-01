@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>olpcMAP | geo-social volunteer net</title>
+	<link rel='stylesheet' type='text/css' href='http://mapmeld.appspot.com/mapmeldStyles.css'/>
+	<script type='text/javascript'>
+function contactMode(){
+	$("coverwindow").style.display="block";
+}
+function closeCoverWindow(){
+	$("coverwindow").style.display="none";
+}
+function illustrate(type){
+	switch(type){
+		case 0:
+			$("infoBubble").style.left="400px";
+			$("infoBubble").style.top="200px";
+			$("infoBubbleImg").src="http://farm5.static.flickr.com/4144/4844885140_d8a55a77d5_m.jpg";
+			$("mapLink").href="http://olpcMAP.net?q=Peru";
+			break;
+		case 1:
+			$("infoBubble").style.left="600px";
+			$("infoBubble").style.top="220px";
+			$("infoBubbleImg").src="http://farm5.static.flickr.com/4042/4290264635_95976e7000_m.jpg";
+			$("mapLink").href="http://olpcMAP.net?q=Nepal";
+			break;
+		case 2:
+			$("infoBubble").style.left="680px";
+			$("infoBubble").style.top="240px";
+			$("infoBubbleImg").src="http://farm5.static.flickr.com/4142/4883271186_f56559d963_m.jpg";
+			$("mapLink").href="http://olpcMAP.net?q=Middle East";
+			break;
+	}
+}
+function toMap(bCode){
+	window.location = "http://olpcMAP.net?b="+bCode;
+}
+function $(id){return document.getElementById(id);}
+	</script>
+	<style type='text/css'>
+html{width:100%;height:100%;z-index:1;}
+body{width:100%;height:100%;margin:0px;padding:0px;background-color:#c9c9ff;}
+div.main{
+	background-color:#B4CFCF;
+	border-left:1px solid #000000;
+	border-right:1px solid #000000;
+	padding:6px;
+	width:90%;
+}
+span.navoption a{
+	color:#000000;
+	text-decoration:none;
+}
+span.navoption a:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+span.navoption:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+a{border:none;}
+a.tab{
+	font-size:11pt;
+	margin-left:8px;
+	margin-right:8px;
+	font-weight:normal;
+}
+a.tab-select{
+	text-decoration:none;
+	color:#500;
+	font-weight:bold;
+	margin-left:8px;
+	margin-right:8px;
+}
+h4{
+	margin-top:20pt;
+}
+div.mapdesc{
+	min-height:200px;
+}
+button.focusGroup{
+	background-color:#208A08;
+	background-size:100%;
+	background: url(http://mapmeld.appspot.com/bg_submit-report.png) repeat-x;
+	border: 4px solid #208A08;
+	border-bottom: 2px solid #ffffff;
+	padding: 9px 12px 9px 12px;
+	width:100%;
+	font-size:14pt;
+	font-weight:bold;
+	text-decoration:none;
+}
+button:hover{
+	border: 4px solid #7058CA;
+	border-bottom: 2px solid #ffffff;
+}
+blockquote{
+	text-decoration:none;
+	font-size:10pt;
+	font-style:italic;
+	color:#ffffff;
+	width:200px;
+	margin-left:0px;
+	text-align:left;
+}
+.stretch {
+	min-width:500px;
+    width:100%;
+    height:100%;
+}
+	</style>
+</head>
+<body>
+	<div class="header">
+		<h3><span style='font-size:1.7em;'>olpcMAP.net</span> geo-social network for the XO, Sugar, and ICT4E</h3>
+		<br/>
+	</div>
+	<div class="nav" style="border-bottom:1px solid black;">
+		<span class="navoption"><a href="http://olpcMAP.net/map">Live Map</a></span>
+		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">Laptop Help</a></span>
+		<span class="navoption"><a href="http://mapmeld.appspot.com/olpcMAP/community">Community-made Maps</a></span>
+		<span class="navoption"><a href="#" onclick="contactMode()">Contact</a></span>
+	</div>
+	<div class="main">
+		<table><tr><td>
+			<div style="background-color:#208A08;">
+			<div style="text-align:center;margin-left:auto;margin-right:auto;color:#208A08;font-size:14pt;background-color:#ffffff;border:2px solid #208A08;border-bottom:none;max-width:100%;padding: 9px 12px 9px 12px;">
+				Who can use this map?
+			</div>
+			<button class="focusGroup" onmouseover="illustrate(0)" onclick="toMap(0)">
+				<span style="color:#ffffff;">Stranger on the Street</span><br/>
+				<blockquote>
+					<ul><li>"I saw this computer in a coffee shop..."</li></ul>
+				</blockquote>
+				<blockquote>
+					<ul><li>"What are students and teachers doing with the XO?"</li></ul>
+				</blockquote>
+			</button>
+			<br/>
+			<button class="focusGroup" onmouseover="illustrate(1)" onclick="toMap(1)">
+				<span style="color:#ffffff;">Potential Volunteer</span><br/>
+				<blockquote>
+					<ul><li>"I know a school in India which would love this..."</ul></li>
+				</blockquote>
+				<blockquote>
+					<ul><li>"Where can I buy an XO for my program?"</ul></li>
+				</blockquote>				
+			</button>
+			<br/>
+			<button class="focusGroup" onmouseover="illustrate(2)" onclick="toMap(2)">
+				<span style="color:#ffffff;">The OLPC Classroom</span><br/>
+				<blockquote>
+					<ul><li>"Can you help me fix my XO and add more classroom activities?"</ul></li>
+				</blockquote>
+				<blockquote>
+					<ul><li>"How can I find penpals and volunteers worldwide?"</ul></li>
+				</blockquote>
+			</button>
+			</div>
+		</td><td>
+			<img src="http://mapmeld.appspot.com/bigmap.jpg" style="min-width:600px;width:100%;" class="stretch" alt=""/>
+			<div style="background: transparent url(http://mapmeld.appspot.com/frontpagemap.jpg);">
+				<div id="infoBubble" style="position:absolute;left:550px;top:220px;text-align:center;width:320px;">
+					<!--<img src=""/>-->
+					<div id="infoBubbleContent" style="background-color:#ffffff;padding-left:12px;padding-right:12px;padding-top:8px;">
+						<a id="mapLink" href="http://olpcMAP.net/map?q=Mongolia">
+							<img id="infoBubbleImg" src="http://farm4.static.flickr.com/3003/2916377218_5b140df150_m.jpg" href="http://www.flickr.com/photos/olpc/4900464912/" width="300" height="210" alt="OLPC"/>
+						</a>
+						<br/>
+						<img src="http://mapmeld.appspot.com/cc-by.jpg" style="height:9pt;vertical-align:middle;"/> OLPC Flickr
+					</div>
+					<img src="http://mapmeld.appspot.com/bottomQ.png" style="width:100%;"/>
+				</div>
+			</div>
+		</td></tr></table>
+		<!--<h4>olpcMAP Sprint</h4>
+		<div>
+			<a href="http://wiki.laptop.org/go/OlpcMAP#Global_MAP_making_SPRINT:_Dec_27-31.2C_2010_in_Boston" target="_blank">
+				<img src="http://2.bp.blogspot.com/__rJtABokm_Q/TPmRcFBeGlI/AAAAAAAACwA/xWzdKl0A3-o/s400/olpcmap.png" style="max-width:350px;max-height:200px;float:left;"/>
+			</a>
+			<div class="mapdesc">
+				<p><a href="http://wiki.laptop.org/go/OlpcMAP#Global_MAP_making_SPRINT:_Dec_27-31.2C_2010_in_Boston" target="_blank">olpcMAP Sprint</a> by OLPC</p>
+				<p>A community event from Dec 27th-31st happening worldwide and based at OLPC's office in Cambridge.  Closing out 2010 with a new event (modeled after book sprints)
+				to map the world of Sugar and OLPC users, and to add meaning to our growing network.</p>
+				<p>This event also aims to develop our mapmaking tools so that students, teachers, and activists can share their experiences and connect with the world.</p>
+			</div>
+		</div>
+		<br/>
+		<button class="submit" onclick="shareLink(1);" style="margin-left:25px;"><span style="color:#ffffff;">Share Map Idea</span></button>-->
+	</div>
+	<div id="coverwindow" style="display:none;position:fixed;margin-left:300px;top:100px;border:1px solid black;font-size:16pt;text-align:right;background-color:#333333;">
+		<input type="button" value="X" style="border:1px solid black;color:black;font-size:16pt;" onclick="closeCoverWindow();"/>
+		<br/>
+		<form id="signinform" style="width:100%;background-color:#ffffff; text-align:left; font-size:13pt;" action="http://mapmeld.appspot.com/olpcMAP/contact?id=you" method="POST">
+			E-mail <input id="emaillogin" name="login"/><br/>
+			<!--Password <input id="passwordlogin" type="password" name="password"/><hr/>-->
+			Message<br/><textarea name="message" width="300"></textarea>
+			<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Send"/>
+		</form>
+		<div id="infoform"></div>
+	</div>
+</body>
+</html>
