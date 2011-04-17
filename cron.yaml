@@ -1,8 +1,12 @@
 cron:
-- description: 220 oldest data points into memcache
+- description: oldest data points into memcache
   url: /olpcMAP/oldest
   schedule: every 2 hours
 
-- description: 220 newest data points into memcache
+- description: newest data points into memcache
   url: /olpcMAP/newest
+  schedule: every 2 hours
+
+- description: 
+  url: /olpcMAPolpc/news/refreshblog
   schedule: every 2 hours

@@ -223,6 +223,30 @@ a.banner:hover{
 	</body> 
 </html>''')
 
+class NewsReport(webapp.RequestHandler):
+  def post(self):
+	s = ComUpdate.get_by_id(long(self.request.get('cid')))
+	if(s.type == 'unknown'):
+		s.type = self.request.get('typer')
+		s.description = self.linkify(self.request.get('postr'))
+		s.postedBy = self.linkify(self.request.get('identity'))
+		s.put()
+	self.redirect('http://mapmeld.appspot.com/olpcMAPolpc/news')
+
+  def linkify(self,unlinkedTxt):
+	unlinkedTxt=unlinkedTxt.replace('Link:','link:')
+	unlinkedTxt=unlinkedTxt.replace('link:',' link:')
+	while(unlinkedTxt.find("link:") != -1):
+		linkUrl=unlinkedTxt[unlinkedTxt.find("link:")+5:len(unlinkedTxt)]
+		linkAfter=''
+		if(linkUrl.find("http")==-1):
+			linkUrl="http://"+linkUrl
+		if(linkUrl.find(" ")!=-1):
+			linkUrl=linkUrl[0:linkUrl.find(" ")]
+			linkAfter=unlinkedTxt[unlinkedTxt.find("link:")+5+len(linkUrl):len(unlinkedTxt)]
+		unlinkedTxt=unlinkedTxt[0:unlinkedTxt.find("link:")] + "<a target='_blank' href='" + linkUrl + "'>" + linkUrl + "</a>" + linkAfter
+	return unlinkedTxt
+
 class MyMapNews(webapp.RequestHandler):
   def post(self):
 	if(self.request.get('topic') == 'new'):
@@ -230,9 +254,20 @@ class MyMapNews(webapp.RequestHandler):
 		s.title = self.request.get('olpcMapQ')
 		s.description = db.Text("Edit this Description")
 		s.type = "unknown"
-		s.postExpire = datetime.now() + timedelta(7)
+		s.postExpire = datetime.now() + timedelta(14)
+		s.responses=[]
 		s.put()
 		self.redirect('http://mapmeld.appspot.com/olpcMAPolpc/news?time=edit&topic=' + str(s.key().id()))
+		return
+	elif(self.request.get('nComment') != ''):
+		s = ComUpdate.get_by_id(long(self.request.get('reply')))
+		try:
+			s.responses.push(self.request.get('nComment'))
+		except:
+			s.responses = [self.request.get('nComment')]
+		s.put()
+		self.redirect('http://mapmeld.appspot.com/olpcMAPolpc/news?replied&topic=' + self.request.get('reply'))
+		return
 
   def get(self):
 	if(self.request.get('topic') != ''):
@@ -295,6 +330,12 @@ button.submit{
 textarea{font-family:arial;}
 		</style>
 		<script type='text/javascript'>
+function submitPost(){
+	$("identity").value = $("namOrg").value;
+	$("postr").value = $("urText").value;
+	$("typer").value = $("topictype").value;
+	$("fillForm").submit();
+}
 function contactMode(){
 	$("coverwindow").style.display="block";
 }
@@ -309,6 +350,7 @@ function $(id){return document.getElementById(id);}
 			<h3><span style='font-size:1.7em;'>olpcMAP Community</span> - topics</h3>
 			<br/>
 		</div>
+		<form id="fillForm" action="http://mapmeld.appspot.com/olpcMAPolpc/newsreport" method="POST" style="display:none;"><input type="hidden" name="identity" id="identity" value=""/><input type="hidden" name="cid" value="''' + str(comUpdate.key().id()) + '''"/><input type="hidden" name="typer" id="typer" value=""/><input type="hidden" name="postr" id="postr" value=""/></form>
 		<div class="nav" style="border-bottom:1px solid black;">
 			<span class="navoption"><a href="http://olpcMAP.net/home">Homepage</a></span>
 			<span class="navoption"><a href="http://olpcMAP.net">Community Map</a></span>
@@ -318,37 +360,22 @@ function $(id){return document.getElementById(id);}
 		<div class="main">
 			<br/><br/>
 			<table style="width:100%;"><tr style="vertical-align:top;"><td style="vertical-align:top;">\n''')
-			mytimedelta = datetime.now() - comUpdate.postDate
-			mytime = "Recent"
-			if(mytimedelta.days == 0):
-				myseconds = mytimedelta.seconds
-				if(myseconds < 60):
-					if(myseconds != 1):
-						mytime = str(myseconds) + " seconds ago"
-					else:
-						mytime = "1 second ago"
-				elif(myseconds < 60*60):
-					if(int(myseconds/60) != 1):
-						mytime = str(int(myseconds/60)) + " minutes ago"
-					else:
-						mytime = '1 minute ago'
-				else:
-					if(int(myseconds/60/60) != 1):
-						mytime = str(int(myseconds/60/60)) + " hours ago"
-					else:
-						mytime = '1 hour ago'
-			else:
-				if(mytimedelta.days==1):
-					mytime = "1 day ago"
-				else:
-					mytime = str(mytimedelta.days) + " days ago"
-			self.response.out.write('<h4>' + cgi.escape(comUpdate.title or '') + '</h4><hr/><div class="desc">Your topic<textarea style="height:30%;width:100%;min-height:70px;"></textarea><br/>Your description<textarea style="height:70%;width:100%;min-height:300px;">' + cgi.escape(comUpdate.description or '') + "</textarea></div><hr/>Posted by " + cgi.escape(comUpdate.postedBy or '') + '<input name="postBy" style="width:250px;" size=35/> - ' + mytime)
+			self.response.out.write('<h4>' + cgi.escape(comUpdate.title or '') + '</h4><hr/><div class="desc">Name of Organizer and Project<textarea id="namOrg" style="height:30%;width:100%;min-height:70px;"></textarea><br/>Topic <select id="topictype"><option value="news">News and Announcements</option><option value="event">Events and Meetings</option><option value="job">Jobs and Internships</option></select><br/>Your News<textarea id="urText" style="height:70%;width:100%;min-height:300px;">' + cgi.escape(comUpdate.description or '') + "</textarea></div><hr/><i>Preparing to post...</i>")
 			self.response.out.write('''		<br/><br/>
+				<button class="submit" onclick="submitPost()"><span style="color:#ffffff;">Post</span></button>
 			</td><td style="vertical-align:top;">
-				<!-- right sidebar -->
 				<div style="background-color:#ffffff;width:100px;min-height:300px;">
 					<u>Recent topics</u>:
-					<br/><br/>
+					<br/>\n''')
+			recentQ = ComUpdate.gql("ORDER BY postDate DESC")
+			if(recentQ is not None):
+				recents = recentQ.fetch(3)
+				if(recents is not None):
+					self.response.out.write('<ul style="font-size:8pt;">\n')
+					for recent in recents:
+						self.response.out.write('<li style="margin-bottom:4px;"><a href="http://olpcMAP.net/news?topic=' + str(recent.key().id()) + '" target="_blank" title="' + cgi.escape(recent.title) + '" alt="' + cgi.escape(recent.title) + '">' + cgi.escape(recent.title)[0:20] + '</a></li>')
+					self.response.out.write('</ul>\n')
+			self.response.out.write('''					<br/>
 					<u>Similar topics</u>:
 					<br/><br/>
 				</div>
@@ -470,18 +497,33 @@ function $(id){return document.getElementById(id);}
 				mytime = "1 day ago"
 			else:
 				mytime = str(mytimedelta.days) + " days ago"
-		self.response.out.write('<h4>' + cgi.escape(comUpdate.title) + '</h4><hr style="color:black;"/><div class="desc">' + cgi.escape(comUpdate.description) + "</div><hr style='color:black;'/>Posted by " + cgi.escape(comUpdate.postedBy) + " - " + mytime)
-		self.response.out.write('''		<br/><br/>
-				<h4>Responses</h4>
-				<form id="replyform" style="text-align:left;font-size:12pt;" action="http://mapmeld.appspot.com/olpcMAPolpc/news?reply=''' + str(comUpdate.key().id()) + '''" method="POST">
-					<div style="width:450px;background-color:#ffffff;padding:8px;text-align:center;">Write a response<br/><textarea style="width:450px;height:200px;font-family:arial;"></textarea><br/><br/></div>
-					<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Post"/>
-				</form>
+		self.response.out.write('<h4>' + cgi.escape(comUpdate.title) + '</h4><hr style="color:black;"/><div class="desc">' + cgi.escape(comUpdate.description).replace('&lt;a','<a').replace('&lt;/a','</a').replace('&gt;','>') + "</div><hr style='color:black;'/>Posted by " + cgi.escape(comUpdate.postedBy) + " - " + mytime)
+		self.response.out.write('		<br/><br/>\n				<h4>Responses</h4>\n')
+		if(comUpdate.responses):
+			if(len(comUpdate.responses) > 0):
+				self.response.out.write('<div class="desc" style="min-height:0px;width:70%;">' + cgi.escape('<hr/>'.join(comUpdate.responses)).replace('&lt;hr/&gt;','<hr/>') + '<hr/></div>')
+		self.response.out.write('''				<div>
+					<form style="width:450px;background-color:#ffffff;padding:8px;text-align:center;font-size:12pt;text-align:left;" action="http://mapmeld.appspot.com/olpcMAPolpc/news?reply=''' + str(comUpdate.key().id()) + '''" method="POST">
+						Add a response<br/>
+						<textarea style="width:450px;height:200px;font-family:arial;" name="nComment"></textarea>
+						<br/><br/>
+						<input type="submit" style="width:200px;text-align:center;margin-left:auto;margin-right:auto;font-size:12pt;" value="Post"/>
+					</form>
+				</div>
 			</td><td style="vertical-align:top;">
 				<!-- right sidebar -->
 				<div style="background-color:#ffffff;width:100px;min-height:300px;">
 					<u>Recent topics</u>:
-					<br/><br/>
+					<br/>\n''')
+		recentQ = ComUpdate.gql("ORDER BY postDate DESC")
+		if(recentQ is not None):
+			recents = recentQ.fetch(3)
+			if(recents is not None):
+				self.response.out.write('<ul style="font-size:8pt;">\n')
+				for recent in recents:
+					self.response.out.write('<li style="margin-bottom:4px;"><a href="http://olpcMAP.net/news?topic=' + str(recent.key().id()) + '" target="_blank" title="' + cgi.escape(recent.title) + '" alt="' + cgi.escape(recent.title) + '">' + cgi.escape(recent.title)[0:20] + '</a></li>')
+				self.response.out.write('</ul>\n')
+		self.response.out.write('''					<br/>
 					<u>Similar topics</u>:
 					<br/><br/>
 				</div>
@@ -513,6 +555,17 @@ function $(id){return document.getElementById(id);}
 	<![endif]--><!--[if IE 7]><link rel="stylesheet" type="text/css" href="http://olpcmap.crowdmap.com/media/css/ie7hacks.css" />
 	<![endif]--><!--[if IE 6]><link rel="stylesheet" type="text/css" href="http://olpcmap.crowdmap.com/media/css/ie6hacks.css" />
 	<![endif]-->
+	<script type="text/javascript">
+function tryPostTopic(){
+	if(document.getElementById("olpcMapQ").value){
+		if(document.getElementById("olpcMapQ").value.length > 1){
+			document.getElementById("addPost").submit();
+			return;
+		}
+	}
+	alert("Please enter a title for your post");
+}
+	</script>
 	<style type="text/css">
 tr.postItem{border:1px solid white;color:black;font-size:14pt;}
 tr.postItem a{color:black}
@@ -522,19 +575,11 @@ tr.postItem a:hover{color:blue;}
 	</style>
 </head>
 <body style="background-color:#00275E;"><div id="main" class="clearingfix" style="width:85%;margin-left:auto;margin-right:auto;min-width:80%;background-color:#e9e9ff;"><div id="mainmiddle" class="floatbox withright"> 
-<div class="content-block-left" style="position:static;margin-left:100px;">
-	<h5>Community Connections</h5>
-	<table class="table-list">
-		<thead>
-			<tr>
-				<th scope="col">TYPE </th>
-				<th scope="col">TOPIC </th>
-				<th scope="col">DATE </th>
-			</tr>
-		</thead>
-		<tbody>\n''')
-		postIcons={'event':'http://google-maps-icons.googlecode.com/files/friends.png','job':'http://google-maps-icons.googlecode.com/files/workoffice.png'}
-		postColors={'event':'#FFFF66','job':'#99CCFF'}
+<div style="font-weight:bold;font-size:20pt;padding:5px;border-bottom:2px solid black;">Community Connections</div>
+<div class="content-block-left" style="position:static;margin-left:100px;">\n''')
+		postIcons={'event':'http://google-maps-icons.googlecode.com/files/friends.png','job':'http://google-maps-icons.googlecode.com/files/workoffice.png','news':'http://google-maps-icons.googlecode.com/files/daycare.png'}
+		postColors={'event':'#FFFF66','job':'#99CCFF','news':'orange'}
+		postLists={'event':'','job':'','news':''}
 		comData = ComUpdate.gql("ORDER BY postDate DESC")
 		if(comData is not None):
 			comUpdates = comData.fetch(20)
@@ -565,13 +610,47 @@ tr.postItem a:hover{color:blue;}
 						mytime = "1 day ago"
 					else:
 						mytime = str(mytimedelta.days) + " days ago"
-				self.response.out.write('<tr class="postItem" style="background-color:' + postColors[comUpdate.type] + '"><td><img src="' + postIcons[comUpdate.type] + '" style="max-width:20pt;max-height:20pt;"/></td><td><a href="http://mapmeld.appspot.com/olpcMAPolpc/news?topic=' + str(comUpdate.key().id()) + '" alt="' + cgi.escape(comUpdate.title) + '" title="' + cgi.escape(comUpdate.title) + '"><span style="font-size:13pt;">' + cgi.escape(comUpdate.title[0:25]) + '</span></a></td><td><span style="font-size:10pt;">' + mytime + '</span></td></tr>')
-		self.response.out.write('''		</tbody>
+				postLists[comUpdate.type] = postLists[comUpdate.type] + '<tr class="postItem" style="background-color:' + postColors[comUpdate.type] + '"><td><img src="' + postIcons[comUpdate.type] + '" style="max-width:20pt;max-height:20pt;"/></td><td><a href="http://olpcMAP.net/news?topic=' + str(comUpdate.key().id()) + '" target="_blank" alt="' + cgi.escape(comUpdate.title) + '" title="' + cgi.escape(comUpdate.title) + '"><span style="font-size:13pt;">' + cgi.escape(comUpdate.title[0:30]) + '</span></a></td><td><span style="font-size:10pt;">' + mytime + '</span></td></tr>'
+		self.response.out.write('''	<h5>Updates</h5>
+	<table class="table-list">
+		<thead>
+			<tr>
+				<th scope="col">TYPE </th>
+				<th scope="col">TOPIC </th>
+				<th scope="col">DATE </th>
+			</tr>
+		</thead>
+		<tbody>''' + postLists['news'] + '''		</tbody>
 	</table>
-	<form id="addPost" action="http://mapmeld.appspot.com/olpcMAPolpc/news?topic=new" method="POST">
-		<input name="olpcMapQ" style="width:300px;font-size:14pt;"/>
-		<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;font-size:14pt;" value="Post"/>
+	<br/>
+	<h5>Events</h5>
+	<table class="table-list">
+		<thead>
+			<tr>
+				<th scope="col">TYPE </th>
+				<th scope="col">TOPIC </th>
+				<th scope="col">DATE </th>
+			</tr>
+		</thead>
+		<tbody>''' + postLists['event'] + '''		</tbody>
+	</table>
+	<br/>
+	<h5>Opportunities</h5>
+	<table class="table-list">
+		<thead>
+			<tr>
+				<th scope="col">TYPE </th>
+				<th scope="col">TOPIC </th>
+				<th scope="col">DATE </th>
+			</tr>
+		</thead>
+		<tbody>''' + postLists['job'] + '''		</tbody>
+	</table>
+	<form id="addPost" action="http://mapmeld.appspot.com/olpcMAPolpc/news?topic=new" method="POST" style="background-color:#eeeeee;padding:2px;">
+		<input name="olpcMapQ" id="olpcMapQ" style="width:300px;font-size:14pt;border:1px solid blue;display:inline;"/>
+		<input type="button" style="width:100px;text-align:center;margin-left:auto;margin-right:auto;font-size:14pt;display:inline;" onclick="tryPostTopic()" value="Post"/>
 	</form>
+	<hr/>
 </div>
 <div class="content-block-right">
 	<h5>News Aggregator - <a href="http://mapmeld.appspot.com/olpcMAPolpc/feed/community" target="_blank">RSS</a></h5>
@@ -1001,6 +1080,7 @@ class ComUpdate(db.Model):
 	postedByMail = db.EmailProperty()
 	postDate = db.DateTimeProperty(auto_now=True)
 	postExpire = db.DateTimeProperty()
+	responses = db.StringListProperty()
 
 class FeatureArticle(db.Model):
 	title = db.StringProperty(multiline=False)
@@ -1013,6 +1093,7 @@ class FeatureArticle(db.Model):
 
 application = webapp.WSGIApplication([('/olpcMAPolpc/home.*',MyMapHome),
 									('/olpcMAPolpc/news/refresh.*',DoomsdayBlog),
+									('/olpcMAPolpc/newsreport.*',NewsReport),
 									('/olpcMAPolpc/news.*',MyMapNews),
 									('/olpcMAPolpc/geonews.*',GeoNews),
 									('/olpcMAPolpc/page/titlemap.*',TitleMap),

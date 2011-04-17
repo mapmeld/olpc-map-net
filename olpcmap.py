@@ -13,6 +13,9 @@ class Home(webapp.RequestHandler):
 	def get(self):
 		url = ''
 		uid = ""
+		lang = "en"
+		if(self.request.url.find('/es') != -1):
+			lang = "es"
 		#if not facebookapi.check_connect_session(self.request):
 		#	uid="no check connect"
 		#else:
@@ -194,21 +197,21 @@ function init(){
 		{name:"OLPCorps",
 			pts:[
 				{name:"OLPCorps:Niger",details:"University of Lagos,Royal Holloway University of London,and University of Salford students",pt:[8.762429,5.799923]},
-				{name:"OLPCorps:Sierra Leone",details:"Tulane University and UC Davis students",pt:[8.760054,-12.572136]},
+				{name:"OLPCorps:Sierr&#1072; Leone",details:"Tulane University and UC Davis students",pt:[8.760054,-12.572136]},
 				{name:"OLPCorps:U of Education,Winneba",pt:[6.14128,-1.670179]},
 				{name:"OLPCorps:U. Kinhasa",pt:[-1.710866,28.959188]},
 				{name:"OLPCorps:U of Ibadan",details:"This project is targeted at empowering people with disabilities by improving their access to technology.<br/><br/><a href='http://abledisableinxo.blogspot.com' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_HbCc4VF-oTw/Splp_fs_JvI/AAAAAAAAADs/xI-fu0xLxWw/s320/teaching.jpg",pt:[9.277909,10.195785]},
 				{name:"OLPCorps:CUNY Baruch",pt:[8.407168,0.087891]},
 				{name:"OLPCorps:Soweto",details:"Deployment with detailed updates for the Global Post<br/><br/><a href='http://oplokhii.blogspot.com' target='_blank'>Blog</a>",pt:[-26.194877,27.993164],photo:"http://3.bp.blogspot.com/_jBm2wqTTQu8/SpX-ytitHwI/AAAAAAAAAQ4/PnIoAZ7bGME/s320/IMG_9629.JPG"},
-				{name:"OLPCorps:Mauritania",details:"Students from Cornell University",pt:[14.349548,-16.918945]},
+				{name:"OLPCorps:Mauritani&#1072;",details:"Students from Cornell University",pt:[14.349548,-16.918945]},
 				{name:"OLPCorps:Ungana Foundation",details:"Students from Utah State University supported the Ungana Foundation's effort to extend and support OLPC Rwanda<br/><br/><a href='http://unganafoundation.blogspot.com/'>Blog</a>",photo:"http://1.bp.blogspot.com/_EkMPu5bJnVU/Sqav0piu-cI/AAAAAAAAAPI/C3ZKbTbPpFA/s400/P1010406.JPG",pt:[-1.83406,29.486618]},
-				{name:"OLPCorps:Heritage Nigeria",details:"Students from Texas A&M University<br/><br/><a href='http://olpcheritagenigeria.blogspot.com/' target='_blank'>Blog</a>",pt:[6.509768,3.537598],photo:"http://2.bp.blogspot.com/_ytQa4_LpsOk/SnfG0uka1-I/AAAAAAAAAFk/A5D3QoWvDkQ/s320/IMG_1478.JPG"},
-				{name:"OLPCorps:Zimbabwe",details:"Students from Macalester College,Midlands State University,and University of Zimbabwe - installed solar and then national grid power<br/><br/><a href='http://olpcorpszimbabwe09.blogspot.com' target='_blank'>Blog</a>",pt:[-17.137838,31.072083]},
-				{name:"OLPCorps:Madagascar",details:"Students from GWU and U Maryland<br/><br/><a href='http://ampitso.wordpress.com/' target='_blank'>Blog</a>",photo:"http://ampitso.smugmug.com/photos/638764729_UCofq-M.jpg",pt:[-13.57024,49.306641]},
+				{name:"OLPCorps:Heritage Nigeri&#1072;",details:"Students from Texas A&M University<br/><br/><a href='http://olpcheritagenigeria.blogspot.com/' target='_blank'>Blog</a>",pt:[6.509768,3.537598],photo:"http://2.bp.blogspot.com/_ytQa4_LpsOk/SnfG0uka1-I/AAAAAAAAAFk/A5D3QoWvDkQ/s320/IMG_1478.JPG"},
+				{name:"OLPCorps:Zimb&#1072;bwe",details:"Students from Macalester College,Midlands State University,and University of Zimbabwe - installed solar and then national grid power<br/><br/><a href='http://olpcorpszimbabwe09.blogspot.com' target='_blank'>Blog</a>",pt:[-17.137838,31.072083]},
+				{name:"OLPCorps:Madagasc&#1072;r",details:"Students from GWU and U Maryland<br/><br/><a href='http://ampitso.wordpress.com/' target='_blank'>Blog</a>",photo:"http://ampitso.smugmug.com/photos/638764729_UCofq-M.jpg",pt:[-13.57024,49.306641]},
 				{name:"OLPCorps:Laval University",details:"<br/><br/><a href='http://collabo.fse.ulaval.ca/olpc/' target='_blank'>Website</a>",photo:"http://collabo.fse.ulaval.ca/olpc/images/teach.jpg",pt:[3.387307,12.877007]},
-				{name:"OLPCorps:Tanzania",details:"Students from Tumaini University.<br/><br/>The school was connected to the internet<br/><br/><a href='http://mot-tumaini.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_z6OVkOJNvTQ/SpvI0dyRxGI/AAAAAAAAAO4/ukhEnWkZXEg/s320/IMG0011A.jpg",pt:[-7.794677,35.690117]},
-				{name:"OLPCorps:Vutakaka",details:"Students from U. Washington and the New School<br/><br/><a href='http://vutakakaolpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_C_wadBS6-ek/SmX5aiSypyI/AAAAAAAAIzg/XKbSjGgYCoo/s320/100_0057.jpg",pt:[-3.513421,39.835739]},
-				{name:"OLPCorps:Kampala",details:"Still operating (though not online). Supported by MIT and Wellesley College<br/><br/><a href='http://uganda-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://2.bp.blogspot.com/_Sm-Wjgh0ZWk/SlCq2EOvw2I/AAAAAAAAABU/Xm_8bmDF7tY/s320/olpc_kps_10.JPG",pt:[0.29663,32.640381]},
+				{name:"OLPCorps:Tanzani&#1072;",details:"Students from Tumaini University.<br/><br/>The school was connected to the internet<br/><br/><a href='http://mot-tumaini.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_z6OVkOJNvTQ/SpvI0dyRxGI/AAAAAAAAAO4/ukhEnWkZXEg/s320/IMG0011A.jpg",pt:[-7.794677,35.690117]},
+				{name:"OLPCorps:Vutakak&#1072;",details:"Students from U. Washington and the New School<br/><br/><a href='http://vutakakaolpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_C_wadBS6-ek/SmX5aiSypyI/AAAAAAAAIzg/XKbSjGgYCoo/s320/100_0057.jpg",pt:[-3.513421,39.835739]},
+				{name:"OLPCorps:Kampal&#1072;",details:"Still operating (though not online). Supported by MIT and Wellesley College<br/><br/><a href='http://uganda-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://2.bp.blogspot.com/_Sm-Wjgh0ZWk/SlCq2EOvw2I/AAAAAAAAABU/Xm_8bmDF7tY/s320/olpc_kps_10.JPG",pt:[0.29663,32.640381]},
 				{name:"OLPCorps:GTech",details:"Students from Grahamstown and Gettysburg <a href='http://picasaweb.google.com/aimeegeorge/PicsFromGTECHSouthAfrica?feat=email#' target='_blank'>Photos Page</a><br/><br/><a href='http://gtech-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://lh3.ggpht.com/_7PSu0kxiZPQ/SrrntMYgpLI/AAAAAAAABFY/41saWNP1JNw/s640/P1080072.JPG",pt:[-33.315037,26.548634]},
 				{name:"OLPCorps:Kwame Nkrumah U.",pt:[7.227441,-0.747414]}
 			]}
@@ -641,7 +644,7 @@ function load(){
 	if(rad){
 		var lngDiff=rad/111;
 		zoom=Math.min(Math.max(Math.floor(10-Math.log(lngDiff/0.556)/0.301),3),15);
-		zoom++;
+		zoom+=2;
 	}
 	else if(box){
 		box=box.split(',');
@@ -774,6 +777,7 @@ img.zoom:hover{border:1px solid #000}
 <img id="map" class="defaultMap" src="" onclick="if(cCtr){clkCtr(event)}else{clkMar(event)}" ondblclick="clickToZoom(event)" alt="Connecting to Google Maps..."/>
 <div id="iEnc"><input type="button" class="cBtn" onclick="closeiWin()" value="x"/><div id="iWin"></div></div>
 </body></html>''')
+			return
 		else:
 			self.response.out.write('''	infoWindow = new google.maps.InfoWindow();
 	google.maps.event.addListener(map,'click',function(){if(!isEditor){infoWindow.close()}});
@@ -787,7 +791,7 @@ img.zoom:hover{border:1px solid #000}
 				position:new google.maps.LatLng(myPoints[myPt].pt[0],myPoints[myPt].pt[1]),
 				map:map,
 				icon:new google.maps.MarkerImage(myPoints[myPt].icon,defSize),
-				title:myPoints[myPt].name
+				title:myPoints[myPt].name.replace("&#1072;","a")
 			});
 		}
 		else{
@@ -796,7 +800,7 @@ img.zoom:hover{border:1px solid #000}
 				position:new google.maps.LatLng(myPoints[myPt].pt[0],myPoints[myPt].pt[1]),
 				map:map,
 				icon:new google.maps.MarkerImage(myRandIcon,defSize),
-				title:myPoints[myPt].name
+				title:myPoints[myPt].name.replace("&#1072;","a")
 			});		
 		}
 		if(!myPoints[myPt].group){myPoints[myPt].group="";}
@@ -817,7 +821,7 @@ img.zoom:hover{border:1px solid #000}
 					position:new google.maps.LatLng(orgs[mOrg].ajax[mAj].pt[0],orgs[mOrg].ajax[mAj].pt[1]),
 					map:map,
 					icon:"http://mapmeld.appspot.com/cluster-icon.jpg",
-					title:orgs[mOrg].ajax[mAj].name
+					title:orgs[mOrg].ajax[mAj].name.replace("&#1072;","a")
 				});
 				addQuery(marker,orgs[mOrg].ajax[mAj].query);
 			}
@@ -841,7 +845,7 @@ img.zoom:hover{border:1px solid #000}
 							position:new google.maps.LatLng(orgs[mOrg].pts[mPt].pt[0],orgs[mOrg].pts[mPt].pt[1]),
 							map:map,
 							icon:new google.maps.MarkerImage(myRandIcon,defSize),
-							title:orgs[mOrg].pts[mPt].name
+							title:orgs[mOrg].pts[mPt].name.replace("&#1072;","a")
 						});
 						myPoints[myPoints.length-1].marker=marker;
 						addInfo(marker,setupContent(myPoints.length-1));
@@ -864,7 +868,7 @@ img.zoom:hover{border:1px solid #000}
 		}
 	}
 	geocoder = new google.maps.Geocoder();\n''')
-		if(self.request.get('view') != 'alt'):
+		if(self.request.get('view') == 'alt'):
 			self.response.out.write('''	var controlDiv = document.createElement('div');
 	controlDiv.style.padding = '5px';
 	var controlUI = document.createElement('div');
@@ -935,13 +939,23 @@ img.zoom:hover{border:1px solid #000}
 	try{
 		$("projCheck").checked=true;
 		$("volCheck").checked=true;
+		$("photoCheck").checked=false;
 		$("newsCheck").checked=false;
 	}
 	catch(e){}
 }
-var newsLayer;
+var newsLayer,mediaMap;
 function toggle(cBox){
 	switch(cBox.id){
+		case "photoCheck":
+			if(!mediaMap){
+				mediaMap = new google.maps.KmlLayer("http://api.flickr.com/services/feeds/geo/?id=27861585@N02&lang=en-us&format=rss_200",{map:map,preserveViewport:true});
+			}
+			else{
+				if(cBox.checked){mediaMap.setMap(map)}
+				else{mediaMap.setMap(null)}
+			}
+			break;
 		case "newsCheck":
 			if(!newsLayer){
 				newsLayer = new google.maps.KmlLayer("http://mapmeld.appspot.com/olpcMAPolpc/geonews?view=global",{map:map,preserveViewport:true});
@@ -1159,7 +1173,7 @@ function searchSearchBox(){
 function makeSearch(search){
 	approxd=null;
 	joinNetwork=true;\n''')
-		if(self.request.get('view')!='alt'):
+		if(self.request.get('view')=='alt'):
 			self.response.out.write('	map.setOptions({navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}});')
 		self.response.out.write('''	searchCats="";
 	$("searchResBox").style.display="block";
@@ -1329,10 +1343,10 @@ function makeSearch(search){
 	$("head").appendChild(siteScript);
 
 	if(approxd!=null){
-		$("searchResBox").innerHTML="<div class='searchCat'><a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div><span id='approxd'>" + approxd + "</span><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
+		$("searchResBox").innerHTML="<div class='searchCat'><!--<a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div>--><span id='approxd'>" + approxd + "</span></div><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
 	}
 	else{
-		$("searchResBox").innerHTML="<div class='searchCat'><a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div><span id='approxd'>Google Geocoding...</span><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
+		$("searchResBox").innerHTML="<div class='searchCat'><!--<a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div>--><span id='approxd'>Google Geocoding...</span></div><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
 	}
 }
 function closeSearch(){
@@ -1372,7 +1386,7 @@ function addInfo(m,content){
 		}
 		infoWindow.open(map,m);
 	});\n''')
-		if(self.request.get('view')=='alt'):
+		if(self.request.get('view')!='alt'):
 			self.response.out.write('''	google.maps.event.addListener(m,'mouseover',function(){
 		try{
 			var mID = content.substring(content.indexOf("mid='")+5);
@@ -1458,6 +1472,7 @@ function login(){
 var joinNetwork=false;
 var clickMoveMarker=null;
 var editorEmail=null;
+var reopenListener;
 function joinNetworkMode(){
 	joinNetwork=true;
 	clickMoveMarker=new google.maps.Marker({
@@ -1467,7 +1482,12 @@ function joinNetworkMode(){
 	});
 	var content="<div style='text-align:center'><h3>Join Our Network</h3>Click the map or drag this marker to set your position.<hr/>Email:<input id='editorEmail' onkeypress='plantMarkerShow()'/><input id='plantMarkerButton' style='display:none;' type='button' value='Plant Marker' onclick='plantMarker()'/></div><br/><hr/>";
 	infoWindow.setContent(content);
-	infoWindow.open(map,clickMoveMarker);	
+	infoWindow.open(map,clickMoveMarker);
+	if(reopenListener){google.maps.event.removeListener(reopenListener)}
+	reopenListener=google.maps.event.addListener(clickMoveMarker,'dragend',function(){
+		infoWindow.setContent("<div style='text-align:center'><h3>Join Our Network</h3>Click the map or drag this marker to set your position.<hr/>Email:<input id='editorEmail' onkeypress='plantMarkerShow()'/><input id='plantMarkerButton' style='display:none;' type='button' value='Plant Marker' onclick='plantMarker()'/></div><br/><hr/>");
+		infoWindow.open(map,clickMoveMarker);
+	});
 	isEditor=true;
 }
 function plantMarkerShow(){
@@ -1475,6 +1495,7 @@ function plantMarkerShow(){
 	$('plantMarkerButton').style.display="inline";
 }
 function plantMarker(){
+	if(reopenListener){google.maps.event.removeListener(reopenListener)}
 	editorEmail = $("editorEmail").value;
 	p({marker:clickMoveMarker,group:"",pt:[clickMoveMarker.getPosition().lat(),clickMoveMarker.getPosition().lng()],icon:"DEFAULT",details:"Describe this place or person",name:"Edit Me"});
 	openEditor(myPoints.length-1,true);
@@ -1512,8 +1533,38 @@ function changeIcon(num){
 	else{
 		$("editorIcon").value=fullIconList[num];
 	}
-}
-function openEditor(mIndex,isNew){
+}\n''')
+		if(lang=="es"):
+			self.response.out.write('''function openEditor(mIndex,isNew){
+	isEditor=true;
+	var m = myPoints[mIndex];
+	var editorString="<div style='width:500px;height:370px;font-size:10pt;' width='500' height='450'>";
+	if(isNew){
+		editorString+="<div id='editor-pg-1' class='editPage'>Nombre<input id='editorTitle' style='width:70%;'/><hr/>";
+		editorString+="<textarea id='editorText' style='width:80%;height:120px;'>Describir el lugar o la persona</textarea><hr/>";
+		editorString+="Nombre del grupo:<br/><input id='editorGroup' style='width:80%;height:18pt;'/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar Imagen<hr/><input id='editorIcon' style='width:70%;'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;border:1px solid #000;'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Link al Album<br/><input id='editorAlbum' style='width:70%;'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Imagen y Foto &gt;</button>";
+		editorString+="<hr/><input type='button' value='Guardar' onclick='saveEdits("+mIndex+");'/></div></div>";
+	}
+	else{
+		if(!myPoints[mIndex].photo){myPoints[mIndex].photo="";}
+		if(!myPoints[mIndex].album){myPoints[mIndex].album="";}
+		editorString+="<div id='editor-pg-1' class='editPage'><a href='http://olpcMAP.net/resetpoint?id="+myPoints[mIndex].id+"' target='_blank'>Cambiar el Nombre o Ubicacion</a><hr/>";
+		editorString+="<textarea id='editorText' style='width:90%;height:150px;'>"+replaceEach(myPoints[mIndex].details,'<br>','\\n')+"</textarea><hr/>";
+		editorString+="Nombre del Grupo:<br/><input id='editorGroup' style='width:80%;height:18pt;' value=\\""+replaceEach(myPoints[mIndex].group,'"',"'")+"\\"/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar Imagen<hr/><input id='editorIcon' style='width:70%;' value='"+myPoints[mIndex].icon+"'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;' value='"+myPoints[mIndex].photo+"'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Link al Album<br/><input id='editorAlbum' style='width:70%;' value='"+myPoints[mIndex].album+"'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Imagen y Foto &gt;</button>";
+		editorString+="<hr/><input type='button' value='Guardar' onclick='saveEdits("+mIndex+");'/></div></div>";
+	}
+	infoWindow.setContent(editorString);
+	infoWindow.open(map,m.marker);
+	google.maps.event.addListener(infoWindow,'closeclick',function(){isEditor=false;ekey=null});
+}\n''')		
+		else:
+			self.response.out.write('''function openEditor(mIndex,isNew){
 	isEditor=true;
 	var m = myPoints[mIndex];
 	var editorString="<div style='width:500px;height:370px;font-size:10pt;' width='500' height='450'>";
@@ -1540,8 +1591,8 @@ function openEditor(mIndex,isNew){
 	infoWindow.setContent(editorString);
 	infoWindow.open(map,m.marker);
 	google.maps.event.addListener(infoWindow,'closeclick',function(){isEditor=false;ekey=null});
-}
-var ekey;
+}\n''')
+		self.response.out.write('''var ekey;
 function upupload(){
 	ekey=Math.random();
 	$('editorUpDiv').innerHTML="<iframe src='http://mapmeld.appspot.com/olpcMAPimg?frame=i&ekey="+ekey+"' style='border:none;height:70px;width:350px;' height='70' width='350'></iframe>";
@@ -1572,7 +1623,7 @@ function saveEdits(mIndex){
 				position:myPoints[mIndex].marker.getPosition(),
 				map:map,
 				icon:new google.maps.MarkerImage(newIconMarkerIcon,defSize),
-				title:myPoints[mIndex].name,
+				title:myPoints[mIndex].name.replace("&#1072;","a"),
 				draggable:isNew
 			});
 		}
@@ -1581,7 +1632,7 @@ function saveEdits(mIndex){
 				position:new google.maps.LatLng(myPoints[mIndex].pt[0],myPoints[mIndex].pt[1]),
 				map:map,
 				icon:new google.maps.MarkerImage(newIconMarkerIcon,defSize),
-				title:myPoints[mIndex].name,
+				title:myPoints[mIndex].name.replace("&#1072;","a"),
 				draggable:isNew
 			});
 		}
@@ -1670,8 +1721,67 @@ function linkify(unlinkedTxt){
 		unlinkedTxt=unlinkedTxt.substring(0,unlinkedTxt.indexOf("link:")) + "<a target='_blank' href='" + linkUrl + "'>" + linkUrl + "</a>" + linkAfter;
 	}
 	return unlinkedTxt;
-}
-function setupContent(mIndex){
+}\n''')
+		if(lang=="es"):
+			self.response.out.write('''function setupContent(mIndex){
+	var markerData = myPoints[mIndex];
+	var contentString;
+	contentString="<h4 style='font-size:11pt;'><a class='tab-select' mid='"+markerData.id+"' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:12pt;'>"+markerData.name+"</a>";
+	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Marcadores</a>";
+	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contacto</a>";
+	var titles="";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			if(titles.indexOf(markerData.tabs[mt].split("|")[0]+"|")==-1){
+				contentString+="<a class='tab' onclick='infoSlice("+(mt*1+3)+","+mIndex+","+markerData.tabs[mt].split("|")[1]+")' href='#'>"+markerData.tabs[mt].split("|")[0]+"</a>";
+				titles+=markerData.tabs[mt].split("|")[0]+"|";
+			}
+		}
+	}
+	contentString+="<a class='tab' href='#' onclick='openEditor("+mIndex+",false)'>Editar</a></h4>";
+	//contentString+="<img src='http://mapmeld.appspot.com/plusIcon.gif' style='vertical-align:middle;margin-left:3px;' onclick='addTab("+mIndex+")'/>";
+	contentString+="<div id='infoWindow-2' style='min-height:180px;'><table><tr>";
+	var width="250";
+	if(!markerData.photo){
+		width="450";
+	}
+	contentString += "<td style='font-size:8pt;' width='"+width+"'>";
+	if((markerData.group) && (markerData.group.length > 1)){
+		contentString += "<span style='font-weight:bold'>De "+linkify(markerData.group)+"</span>";
+	}
+	contentString+="<hr/>";
+	if(markerData.details){contentString += linkify(markerData.details)}
+	else{contentString+="Por favor, ayudanos con los detalles"}
+	contentString+="</td>";
+	if(markerData.photo){
+		if(markerData.album){
+			contentString+="<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;' alt='BestPhoto'/><br/>Ver Las Fotos</a></div></td>";		
+		}
+		else{
+			contentString+="<td><div id='mediadiv'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></div></td>";
+		}
+	}
+	else{
+		if(markerData.album){
+			contentString+="<td width='30pt'><a href='"+markerData.album+"' target='_blank'>Ver Las Fotos</a></td>";
+		}
+		else{
+			contentString+="<td width='10'></td>";
+		}
+	}
+	contentString+="</tr></table></div>";
+	contentString+="<div id='infoWindow-0' style='display:none;min-height:180px;'></div>";
+	contentString+="<div id='infoWindow-1' style='display:none;min-height:180px;'><iframe id='infoWindow-contact' src='' style='border:none;' height='300' width='400'></iframe></div>";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'></div>";
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'><iframe id='infoFrame-"+(mt*1+3)+"' src='' style='border:none;' height='300' width='400'></iframe></div>";
+		}
+	}
+	return contentString;
+}\n''')
+		else:
+			self.response.out.write('''function setupContent(mIndex){
 	var markerData = myPoints[mIndex];
 	var contentString;
 	contentString="<h4 style='font-size:11pt;'><a class='tab-select' mid='"+markerData.id+"' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:12pt;'>"+markerData.name+"</a>";
@@ -1727,8 +1837,8 @@ function setupContent(mIndex){
 		}
 	}
 	return contentString;
-}
-var openMarkerForTab;
+}\n''')
+		self.response.out.write('''var openMarkerForTab;
 function addTab(mIndex){
 	openMarkerForTab=mIndex;
 	myPoints[mIndex].tabs.push("Technical|new");
@@ -1802,8 +1912,9 @@ a.tab-select{
 	font-weight:bold;
 	margin-left:8px;
 	margin-right:8px;
-}
-div.searchCat{
+}\n''')
+		if(self.request.get('view') == 'alt'):
+			self.response.out.write('''div.searchCat{
 	background-color:#aaaaaa;
 	font-weight:bold;
 	padding:5px;
@@ -1821,15 +1932,41 @@ ul.searchList li:hover{
 span.topResult{
 	font-size:11pt;
 	background-color:#ccdddd;
+}''')
+		else:
+			self.response.out.write('''div.searchCat{
+	background-color:darkblue;
+	color:white;
+	font-weight:bold;
+	padding:5px;
 }
-li.prof{
+ul.searchList li{
 	font-family:Arial,sans-serif;
 	font-size:14px;
 	border-bottom:1px solid black;
 	cursor:pointer;
 	padding:6px;
 	list-style-type:none;
-	margin-left:-30px;
+	margin-left:-10px;
+	background-color:#aaaaff;
+}
+ul.searchList li:hover{
+	background-color:blue;
+	color:white;
+}
+span.topResult{
+	font-size:11pt;
+	background-color:darkblue;
+	color:white;
+}''')
+		self.response.out.write('''li.prof{
+	font-family:Arial,sans-serif;
+	font-size:14px;
+	border-bottom:1px solid black;
+	cursor:pointer;
+	padding:6px;
+	list-style-type:none;
+	margin-left:-10px;
 	background-color:#aaaaff;
 }
 li.prof:hover{
@@ -1850,8 +1987,22 @@ div.sBar{
 	<!--[if IE 6]><style type="text/css">li.prof{margin-left:0px;}</style><![endif]-->
 	<!--[if IE 7]><style type="text/css">li.prof{margin-left:0px;}</style><![endif]-->
 </head>
-<body onload="init();">
-	<div class="header">
+<body onload="init();">\n''')
+		if(lang=="es"):
+			self.response.out.write('''	<div class="header">
+		<h3><span style='font-size:1.7em;min-height:16pt;'>olpcMAP</span> - un red geografico por Sugar y la XO <a href="http://www.facebook.com/pages/OlpcMAP/126840500716047" style="margin-left:8px;" target="_blank"><img src="http://facebook.com/favicon.ico" alt="Facebook Page" title="Facebook Page" style="height:16pt;"/></a><a href="http://twitter.com/olpcmap" style="margin-left:8px;" target="_blank"><img src="http://twitter.com/favicon.ico" title="Twitter Feed" alt="Twitter Feed" style="height:16pt;"/></a></h3>
+		<noscript><h3>Enable JavaScript to view olpcMAP</h3></noscript>
+		<br/>
+	</div>
+	<div class="nav"> 
+		<span class="navoption"><a href="#" onclick="joinNetworkMode();">Usted y el Mapa</a></span> 
+		<span class="navoption"><a href="http://olpcMAP.net/home" target="_blank">Inicio</a></span> 
+		<span class="navoption"><a href="http://wiki.laptop.org/" target="_blank">Ayuda con XO</a></span> 
+		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">Sobre Nos.</a></span> 
+		<span class="navoption"><a href="#" onclick="contactMode()">Contacto</a></span> 
+	</div>\n''')
+		else:
+			self.response.out.write('''	<div class="header">
 		<h3><span style='font-size:1.7em;min-height:16pt;'>olpcMAP</span> - a geosocial network for Sugar and the XO <a href="http://www.facebook.com/pages/OlpcMAP/126840500716047" style="margin-left:8px;" target="_blank"><img src="http://facebook.com/favicon.ico" alt="Facebook Page" title="Facebook Page" style="height:16pt;"/></a><a href="http://twitter.com/olpcmap" style="margin-left:8px;" target="_blank"><img src="http://twitter.com/favicon.ico" title="Twitter Feed" alt="Twitter Feed" style="height:16pt;"/></a></h3>
 		<noscript><h3>Enable JavaScript to view olpcMAP</h3></noscript>
 		<br/>
@@ -1863,23 +2014,35 @@ div.sBar{
 		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">About Map</a></span>
 		<span class="navoption"><a href="#" onclick="contactMode()">Contact</a></span>
 	</div>\n''')
-		if(self.request.get('view') == 'alt'):
-			self.response.out.write('''	<table style="width:100%;height:100%;"><tr style="width:100%;vertical-align:top;">
+		if(self.request.get('view') != 'alt'):
+			self.response.out.write('''	<table style="width:100%;height:100%;"><tr style="width:100%;height:100%;vertical-align:top;">
 		<td width="220" style="width:220px;">
-			<div id="sidebar" class="sBar" style="width:225px;border-right:1px solid blue;margin-right:-6px;margin-top:10px;background-color:white;">
-				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
-				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Projects</label><br/><br/>
-				<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>News &amp; Updates</label>
+			<div id="sidebar" class="sBar" style="width:225px;border-right:1px solid blue;margin-right:-6px;margin-top:10px;background-color:white;">\n''')
+			if(lang=="es"):
+				self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Voluntarios</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Proyectos</label><br/><br/>
+				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Mapa de Fotos</label>
+				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>Noticias</label>-->
 				<hr/>
 				<div style="background-color:white;padding:3px;padding-bottom:0px;cursor:pointer;text-align:center;max-width:250px;">
 					<input id="searchbox" type="text" style="min-width:200px;width:200px;font-family:Arial,sans-serif;font-size:12pt;border:1px solid blue;" size="10" onkeypress="keyGoes(event);"/>
 					<br/>
 					<button onclick="searchSearchBox();" style="font-size:12pt;">
 						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
-						<span style="vertical-align:middle;">Find</span>
-					</button>
-				</div>
-				<ul id="searchResBox" style="margin-left:-10px;width:194px;">\n''')
+						<span style="vertical-align:middle;">Buscar</span>\n''')			
+			else:
+				self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Projects</label><br/><br/>
+				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Media Map</label>
+				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>News &amp; Updates</label>-->
+				<hr/>
+				<div style="background-color:white;padding:3px;padding-bottom:0px;cursor:pointer;text-align:center;max-width:250px;">
+					<input id="searchbox" type="text" style="min-width:200px;width:200px;font-family:Arial,sans-serif;font-size:12pt;border:1px solid blue;" size="10" onkeypress="keyGoes(event);"/>
+					<br/>
+					<button onclick="searchSearchBox();" style="font-size:12pt;">
+						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
+						<span style="vertical-align:middle;">Find</span>\n''')
+			self.response.out.write('					</button>\n				</div>\n				<ul id="searchResBox" style="margin-left:-30px;">\n')
 			if results is not None:
 				topCount = 0
 				for pt in results:
@@ -1929,7 +2092,7 @@ div.sBar{
 					</li>\n''')
 			self.response.out.write('''				</ul>
 			</div>
-		</td><td>
+		</td><td style="height:100%;width:100%;">
 			<div id="map" style="height:90%;width:100%;min-width:600px;min-height:700px;"></div>
 		</td></tr></table>
 		<div class="main">The goal of olpcMAP is to learn more about where education technology is in play - around the world and in our own neighborhoods. 
@@ -1948,31 +2111,21 @@ We are interested in opening up the network design process to embrace various st
 		<input type="button" value="X" style="border:1px solid black;color:black;font-size:16pt;" onclick="closeCoverWindow();"/>
 		<br/>
 		<form id="signinform" style="width:100%;background-color:#ffffff; text-align:left; font-size:13pt;" action="http://mapmeld.appspot.com/olpcMAP/contact?id=you" method="POST">
-			E-mail <input id="emaillogin" name="login"/><br/>
-			<!--Password <input id="passwordlogin" type="password" name="password"/><hr/>-->
-			Message<br/><textarea name="message" width="550" height="300"></textarea>
+			E-mail <input id="emaillogin" name="login"/><br/>''')
+		if(lang=="es"):
+			self.response.out.write('''			Mensaje<br/>
+			<textarea name="message" width="550" height="300"></textarea>
+			<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Enviar"/>
+		</form>
+	</div>
+</body>
+</html>''')
+		else:
+			self.response.out.write('''			Message<br/>
+			<textarea name="message" width="550" height="300"></textarea>
 			<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Send"/>
 		</form>
 	</div>
-	<div id="fb-root"></div>
-	<!--<div id="fb-login-div" style="background-color:white;border:solid 2px #000;cursor:pointer;text-align:center;">
-		<input type="button" value="Log In User" onclick="login();"/><br/><hr/><br/>
-		<a href="''' + url + '''"><input type="button" value="Google SignIn"/></a><br/><hr/>
-		<p><fb:login-button autologoutlink="true" onlogin="redirect()"></fb:login-button></p><br/>
-	</div>
-	<script type="text/javascript">
-      window.fbAsyncInit = function() {
-        FB.init({appId:'123994207657251',status:true,cookie:true,xfbml:true});
-      };
-	  function redirect(){
-		//window.location="http://mapmeld.appspot.com/olpcMAP?fb_online";
-		facebookUser=true;
-		//FB_RequireFeatures(["XFBML"],function()
-		//{
-		//	FB.Facebook.init("541a5336e083acd2cc0b94c2fea7300d","http://mapmeld.appspot.com/xd_receiver.htm");
-		//});
-	  }
-    </script>-->
 </body>
 </html>''')
 
@@ -3157,7 +3310,12 @@ function searchOpt(){
 	$("head").appendChild(sScript);
 }
 function keyGoes(evt){
-	if(event!=null){
+	if(evt!=null){
+		if(evt.keyCode==13){
+			searchOpt();
+		}
+	}
+	else if(event!=null){
 		if(event.keyCode==13){
 			searchOpt();
 		}
@@ -3394,7 +3552,7 @@ class Oldest(webapp.RequestHandler):
 
   def snap(self):
 	mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate ASC")
-	results = mapPoints.fetch(220)
+	results = mapPoints.fetch(240)
 	resultOut=u''
 	for pt in results:
 		resultOut = resultOut + u'p({name:"'
@@ -3739,7 +3897,7 @@ li.prof{
 	cursor:pointer;
 	padding:6px;
 	list-style-type:square;
-	margin-left:-30px;
+	margin-left:-10px;
 	background-color:#aaaaff;
 }
 li.prof:hover{
@@ -3827,7 +3985,7 @@ class Newest(webapp.RequestHandler):
 	self.snap()
   def snap(self):
 	mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate ASC")
-	results = mapPoints.fetch(220,220)
+	results = mapPoints.fetch(240,240)
 	resultOut=u''
 	for pt in results:
 		resultOut = resultOut + u'pS({name:"'
@@ -4049,29 +4207,29 @@ class PointTab(db.Model):
 	values = db.StringListProperty()
 
 application = webapp.WSGIApplication([('/olpcMAP/makePoint.*',MakePoint),
-									('/olpcMAPolpc/makePoint.*',MakePoint),
-									('/olpcMAPolpc/share.*',ShareMain),
-									('.*olpcMAP.*/addTab.*',AddTab),
-									('.*olpcMAP.*/getTab.*',GetTab),
-									('.*olpcMAPolpc/img.*',MapImage),
-									('.*olpcMAPimg.*',MapImage),
-									('/olpcMAP/community.*',Offshoots),
-									('/olpcMAPolpc/community.*',Offshoots),
-									('/olpcMAP/json.*',JSONout),
-									('/olpcMAP/search.*',Search),
-									('/olpcMAPolpc/search.*',Search),
-									('/olpcMAPolpc/json.*',JSONout),
-									('/olpcMAP/kml.*',KMLout),
-									('/olpcMAPolpc/kml.*',KMLout),
-									('/olpcMAPolpc/feed.*',RSSout),
-									('/olpcMAP/import.*',JSONin),
-									('.*contact.*',Contact),
-									('/olpcMAP/oldest.*',Oldest),
-									('/olpcMAP/newest.*',Newest),
-									('/olpcMAPolpc/resetpoint.*',ResetPoint),
-									('/olpcMAPolpc/confirm.*',EmailConfirming),
-									('/olpcMAP.*',Home)],
-                                     debug=True)
+				('/olpcMAPolpc/makePoint.*',MakePoint),
+				('/olpcMAPolpc/share.*',ShareMain),
+				('.*olpcMAP.*/addTab.*',AddTab),
+				('.*olpcMAP.*/getTab.*',GetTab),
+				('.*olpcMAPolpc/img.*',MapImage),
+				('.*olpcMAPimg.*',MapImage),
+				('/olpcMAP/community.*',Offshoots),
+				('/olpcMAPolpc/community.*',Offshoots),
+				('/olpcMAP/json.*',JSONout),
+				('/olpcMAP/search.*',Search),
+				('/olpcMAPolpc/search.*',Search),
+				('/olpcMAPolpc/json.*',JSONout),
+				('/olpcMAP/kml.*',KMLout),
+				('/olpcMAPolpc/kml.*',KMLout),
+				('/olpcMAPolpc/feed.*',RSSout),
+				('/olpcMAP/import.*',JSONin),
+				('.*contact.*',Contact),
+				('/olpcMAP/oldest.*',Oldest),
+				('/olpcMAP/newest.*',Newest),
+				('/olpcMAPolpc/resetpoint.*',ResetPoint),
+				('/olpcMAPolpc/confirm.*',EmailConfirming),
+				('/olpcMAP.*',Home)],
+				debug=True)
 
 def main():
   run_wsgi_app(application)
