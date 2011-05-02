@@ -9,13 +9,1619 @@ from datetime import datetime
 from geomodel import GeoModel
 import geotypes
 
+class OpenMap(webapp.RequestHandler):
+	def get(self):
+		self.response.out.write('''<!DOCTYPE html> 
+<html> 
+<head id="head"> 
+	<title>olpcMAP.net in OpenLayers</title> 
+	<script type="text/javascript" src="http://openlayers.org/api/OpenLayers.js"></script> 
+	<link rel='stylesheet' type='text/css' href='http://mapmeld.appspot.com/mapmeldStyles.css'/> 
+	<script type='text/javascript'>
+var map,countries,people,orgs,infoWindow,geocoder,myPoints,specialRegion,isEditor,lastSText,approxd,dragFeature,newMrkrs,popup,style_blue,mapMrks;
+function init(){
+	joinNetwork=true;
+	var proj_4326=new OpenLayers.Projection('EPSG:4326');
+	var proj_900913=new OpenLayers.Projection('EPSG:900913');
+	map = new OpenLayers.Map({
+		div: "map",
+		allOverlays: true,
+		units: "mi",
+		projection: proj_900913,
+		'displayProjection': proj_4326
+	});
+	var osm = new OpenLayers.Layer.OSM();
+	map.addLayers([osm]);
+	map.addControl(new OpenLayers.Control.LayerSwitcher());
+	map.setCenter(new OpenLayers.LonLat(-20,30).transform(map.displayProjection, map.projection),3);
+	orgs=[
+		{name:"Moving Windmills",website:"http://williamkamkwamba.typepad.com",
+			pts:[
+				{name:"William Kamkwamba's Primary School",details:"1 XO,brought by William from TED in Arusha after telling the world about his homemade windmill.  Inspiring story.  <a href='http://williamkamkwamba.typepad.com/williamkamkwamba/2008/03/bringing-an-olp.html' target='_blank'>William's OLPC blog post</a>",pt:[-12.9829,33.6831],photo:"http://williamkamkwamba.typepad.com/williamkamkwamba/images/2008/03/21/img_0005.jpg"}
+			]},
+		{name:"OLPC Canada",website:"http://www.olpccanada.com",
+			ajax:[
+				{name:"OLPC Canada",pt:[55.786613,-98.885193],query:"/json?country=Canada",icon:"http://lib.store.yahoo.net/lib/yhst-91918294864082/canada-flag.gif"}
+			],
+			pts:[]},
+		{name:"OLPC Australia",website:"http://www.olpc.org.au",video:"http://youtube.com/watch?v=68p4kmKilyI",
+			ajax:[{name:"Sydney Center",pt:[-26.4312,121.6406],query:"/json?country=Australia"}],
+			pts:[]},
+		{name:"DBF OLPC India",website:"http://www.digitalbridgefoundation.org/",
+			pts:[
+				{name:"St. Anthony School,Dugawar,UP",details:"<a href='http://wiki.laptop.org/go/Oeuvre_des_pains' target='_blank'>School wiki page</a>",pt:[28.7168,78.5552],photo:"http://wiki.laptop.org/images/3/3c/OeuvreDesPains-Belgium-P1030833.JPG"},
+				{name:"Auroville,TN",details:"<a href='http://wiki.laptop.org/go/OLPC_India/Auroville' target='_blank'>School wiki page</a>",pt:[12.0093,79.8102],photo:"http://wiki.laptop.org/images/4/44/The_Joy_of_Exploration.JPG"},
+				{name:"Khairat School",pt:[18.917492,73.299408],details:"OLPC India's first pilot site<br/><br/><a href='http://wiki.laptop.org/go/OLPC_India/Khairat_school' target='_blank'>School wiki page</a>",photo:"http://wiki.laptop.org/images/b/b8/P1060290.JPG"},
+				{name:"Kikarwali",details:"India Foundation for Children Education and Care<br/><br/><a href='http://picasaweb.google.com/darshan2008/OLPCDeploymentProjectAtKikarwaliRajasthanIndiaOnMarch242010' target='_blank'>School Deployment Photos</a>",pt:[28.423199,75.60751],photo:"http://lh5.ggpht.com/_TKLjoqnmIB8/S6tmt8NyDhI/AAAAAAAAArA/6rZbCfBKDLQ/s512/DSC_0320.jpg"},
+				{name:"Parikrma Center for Learning,Bangalore",details:"30 XO laptops were deployed at this center,run by the <a href='http://www.parikrmafoundation.org' target='_blank'>Parikrma Foundation</a><br/><br/><a href='http://wiki.laptop.org/go/OLPC_India/DBF/Bangalore.Parikrma' target='_blank'>School-specific wiki page</a>",pt:[12.942348,77.585542],photo:"http://wiki.laptop.org/images/7/7b/Olpc-bangalore8.JPG"},
+				{name:"Aradhna School, Bangalore",details:"<a href='http://wiki.laptop.org/go/OLPC_India/DBF/Bangalore.Parikrma' target='_blank'>School wiki page</a>",pt:[12.885608,77.591865],photo:"http://wiki.laptop.org/images/6/66/Olpc-bangalore7.JPG"},
+				{name:"Holy Mother School,Nashik",details:"<a href='http://wiki.laptop.org/go/OLPC_India/Nashik' target='_blank'>School wiki page</a>",pt:[20.00574,73.748186],photo:"http://wiki.laptop.org/images/9/9e/P1010444.jpg"},
+				{name:"Mandal Parishad Primary School",details:"<a href='http://wiki.laptop.org/go/OLPC_India/DBF/Hyderabad-Mandal_Parishad_Primary_School' target='_blank'>School wiki page</a>",pt:[17.445319,78.38625],photo:"http://wiki.laptop.org/images/d/d5/DSC09954.JPG"},
+				{name:"Our Lady of Merces High School",details:"wiki page under development",pt:[15.277893,73.924255]}
+			]},
+		{name:"OLPC Mongolia",website:"http://www.laptop.gov.mn",
+			pts:[
+				{name:"Alag-Erdene soum",details:"one of three schools in Khovsgol district",pt:[50.1167,100.045]},
+				{name:"Khatgal soum",details:"one of three schools in Khovsgol district",pt:[50.4425,100.1603],photo:"http://farm4.static.flickr.com/3233/2915260637_f5f0375063.jpg",details:"Photo CC-BY Elana Langer"},
+				{name:"21 Ulanbaatar Schools",pt:[47.920484,106.925125],photo:"http://upload.wikimedia.org/wikipedia/commons/3/37/OLPC_Class_-_Mongolia_Ulaanbaatar.JPG"},
+				{name:"Khankh soum",details:"one of three schools in Khovsgol district",pt:[51.5023,100.6674]}
+			]},
+		{name:"OLPC Asia",website:"http://www.olpc.asia/index.html",
+			pts:[
+				{name:"Dujiangyan School,Sichuan",pt:[30.998285,103.619785],photo:"http://farm5.static.flickr.com/4138/4900464912_786490fed5_z.jpg",details:"Photo CC-BY OLPC"}
+			]},
+		{name:"Digital Literacy Project",website:"http://www.digiliteracy.org",
+			pts:[
+				{name:"Cambridge Friends School",details:"This XO pilot program is one of the first in the Boston area.  CFS is an independent K-8 Quaker school.  The XO is being introduced into the existing curriculum.",pt:[42.387,-71.1311],photo:"http://seeta.in/wiki/images/1/1e/DigiLit_at_CFS.JPG"},
+				{name:"Mission Hill School",details:"This pilot program is DigiLit's first collaboration with the Boston Public School System.  The program is designed to help this charter school's 4th and 5th grades grow to a 1:1 laptop ratio",pt:[42.3306,-71.0993],photo:"http://seeta.in/wiki/images/3/3d/DigiLit_at_Mission_Hill.jpg"},
+				{name:"Nicaragua Project",details:"In January 2010,DigiLit worked with the IADB to set up an XO laptop library at the Nicaraguan Deaf Association in Managua.  We are exploring how to close the education technology gap for these students.",pt:[12.1452,-86.2806],photo:"http://seeta.in/wiki/images/0/0d/DigiLit_in_Nicaragua_1.jpg"}
+			]},
+		{name:"Waveplace",website:"http://waveplace.org",
+			pts:[				
+				{name:"Buenos Aires,Nicaragua",
+				details:"Our first pilot in Spanish,Waveplace worked with Campo Alegria to teach at arural elementary school without electricity. The government of Nicaragua was so impressed,they asked us to train 300 teachers throughout the country.<br/><a href='http://waveplace.org/locations/nicaragua' target='_blank'>Link</a>",
+				pt:[11.455799,-85.759277],
+				photo:"http://waveplace.com/mu/waveplace/item/tp166.jpg"},
+				{name:"St. John,US Virgin Islands",
+				details:"Waveplace started our journey at Guy H. Benjamin Elementary School in Coral Bay with twenty fourth graders who received the world's first 20 production XOs from OLPC. The pilot was a true learning experience for all.<br/><a href='http://waveplace.org/locations/usvi' target='_blank'>Link</a>",
+				pt:[18.360798,-64.74402],
+				photo:"http://waveplace.com/mu/waveplace/item/tp16.jpg"},		
+				{name:"St. Vincent Pilot",
+				details:"<a href='http://waveplace.com/mu/waveplace/item/tp53' target='_blank'>Link</a> - please help us add details",
+				pt:[13.235935,-61.180115],
+				photo:"http://waveplace.com/mu/waveplace/item/tp51.jpg"},
+				{name:"Port-au-Prince,Haiti",
+				details:"Our first pilot in Haiti,taught in French,Waveplace trained teachers and orphans at Mercy & Sharing Foundation's John Branchizio School in Port-au-Prince. It was here we first felt our mission have a clear effect.<br/><a href='http://waveplace.com/mu/locations/haiti' target='_blank'>Link</a>",
+				pt:[18.693001,-72.353511],
+				photo:"http://waveplace.com/mu/waveplace/item/tp81.jpg"},
+				{name:"Petite Rivere de Nippes,Haiti",
+				details:"Partnering with the American Haitian Foundation,Waveplace trained four local mentors and three from the island of Lagonav. Petite Rivere remains our longest active pilot location in Haiti,with laptop classes continuing to this day.<br/><a href='http://waveplace.com/mu/locations/haiti' target='_blank'>Link</a>",
+				pt:[18.473992,-73.23349],
+				photo:"http://waveplace.com/mu/waveplace/item/tp2.jpg"},
+				{name:"Cambridge",
+				details:"<a href='http://waveplace.com/news/blog/archive/000850.jsp' target='_blank'>Link</a> - please help us add details",
+				pt:[42.371988,-71.086693],
+				photo:"http://waveplace.com/images/xoPrep.jpg"}
+			]},
+		{name:"OLPC Papua New Guinea",website:"http://www.olpc.org.pg/",video:"http://www.youtube.com/watch?v=woS3wDpoMiU",
+			pts:[
+				{name:"North Wahgi",pt:[-5.684658,144.49665],details:"250 XO laptops funded by PNGSDP",photo:"http://www.olpc.org.pg/images/stories/jim_taylor_primary1.jpg"},
+				{name:"Gaire",pt:[-9.676569,147.417297],details:"53 XO laptops,saturated 3rd grade class",photo:"http://wiki.laptop.org/images/d/d3/PNG-Nov08-2.jpg"},
+				{name:"Dreikikir",pt:[-3.57516,142.76946],details:"Dreikikir Admin Primary School is located in East Sepik Province,near Wewak. This school is participating in the EU-funded Improvement of Rural Primary Education Facilities (IRPEF) project,based in Madang. The IRPEF is collaborating with the Department of Education and OLPC Oceania to implement the trial."}
+			]},
+		{name:"OLPC Alabama",website:"http://wiki.laptop.org/go/OLPC Birmingham",video:"http://youtube.com/watch?v=inxOg-dt6rw",
+			pts:[
+				{name:"Birmingham",pt:[33.5271,-86.8229],details:"15000 XOs deployed? <a href='http://blog.laptop.org/2010/05/21/updates-from-alabama'>Latest update</a>",photo:"http://blog.laptop.org/wp-content/uploads/2010/05/westend-camp.jpg"}
+			]},
+		{name:"OLPC South Carolina",website:"http://www.laptopsc.org",video:"http://youtube.com/watch?v=y3VLAUtv9Rw",
+			ajax:[
+				{name:"South Carolina",pt:[33.767732,-80.507812],query:"/json?state=SouthCarolina"}
+			],
+			pts:[
+			]},
+		{name:"Gureghian Family",
+			pts:[
+				{name:"Chester Community Charter School",pt:[39.847031,-75.357971],details:"Deployment of 1400 laptops for students grades 3-8<br/><br/><a href='http://webcache.googleusercontent.com/search?q=cache:0yNNTyovLIcJ:wiki.laptop.org/images/9/9a/CCCS_12.10.08_Final.doc+olpc+chester&cd=1&hl=en&ct=clnk&gl=us' target='_blank'>Project Page</a>"}
+			]},
+		{name:"Amagezi Gemaanyi Youth Association",website:"http://amagezigemaanyi.blogspot.com",
+			pts:[
+				{name:"Lubya Youth Education Centre",details:"Community center in Kampala; received XO laptops through Contributors Program project by USC",pt:[0.3289,32.5527],photo:"http://1.bp.blogspot.com/_3doFkXas3vs/TEy34ipYQbI/AAAAAAAABkU/XlMIvb3KrxA/S390/agya-olpc4.jpg"}
+			]},
+		{name:"SEETA",website:"http://wiki.sugarlabs.org/go/Sugar_on_a_Stick_in_Delhi_India",
+			pts:[
+				{name:"Veda Vyasa DAV School",details:"Sugar on a Stick deployment in Delhi,India<br/>Our goal is to measure student learning improvements - students have a digital portfolio of their work and achievements. We will be publishing a case study in fall 2010 with a professor in Boston University's School of Education<br/><a href='http://theteamgoestoindia.wordpress.com' target='_blank'>Blog</a>",pt:[28.6384,77.0617]}
+			]},
+		{name:"OLE Nepal",website:"http://www.olenepal.org",video:"",
+			pts:[],
+			ajax:[{name:"OLE Nepal",pt:[27.3728,85.1897],query:"/json?country=Nepal"}]},
+		{name:"TecnoTzotzil",website:"http://sites.google.com/tecnotzotzil",
+			pts:[
+				{name:"4 San Cristobal De Las Casas Schools",details:"SoaS deployment with 44 students,using Intel Classmate PCs. Photo CC-BY Jose I. Icaza",pt:[16.7404,-92.6307],photo:"http://farm3.static.flickr.com/2600/3979066854_e9fdf5c530.jpg"}
+			]},
+		{name:"Educa Libre",website:"http://educalibre.cl",
+			pts:[
+				{name:"Florence Nightingale School",details:"SoaS deployment with 25 K-3 students in Macul,Chile. Acer netbooks and some PCs",pt:[-33.4871,-70.6048],photo:"http://educalibre.cl/wp-content/uploads/2010/07/alumno_piloto_memorice3.jpg"}
+			]},
+		{name:"United Action for Children",website:"http://www.unitedactionforchildren.org/",
+			pts:[
+				{name:"UPenn OLPCorps",details:"Students and teachers trained to use Scratch,Write,and more<br/><br/><a href='http://upennuac.blogspot.com/' target='_blank'>Blog</a>",pt:[4.061536,9.448242],photo:"http://1.bp.blogspot.com/_iSJqZVkttQc/SpM7e6-Qh_I/AAAAAAAAACc/YLR726R5GP0/s320/5848_237169645060_875880060_8375546_6766219_n%5B1%5D.jpg"}
+			]},
+		{name:"Ethiopia Engineering Capacity Building",website:"http://www.ecbp.biz/",
+			pts:[
+				{name:"OLPCorps:Dalarna U. and Royal IT",details:"<br/><br/><a href='http://wiki.laptop.org/go/OLPCorps_DKTH_ETHIO_PROPOSAL' target='_blank'>Wiki Page</a>",photo:"",pt:[7.939556,39.122314]}
+			]},
+		{name:"OLPCorps",
+			pts:[
+				{name:"OLPCorps:Harvard and MIT",pt:[-24.20689,16.167669]}
+			]},
+		{name:"GMin",website:"http://www.gmin.org/",
+			pts:[
+				{name:"OLPCorps Sahn Malen",details:"Princeton University and University of Maryland students<br/><br/><a href='http://olpcsm.blogspot.com/' target='_blank'>Wiki Page</a>",photo:"http://3.bp.blogspot.com/_I7lfwYcs8Jo/Sn871AI5K6I/AAAAAAAABpc/gzJ2XA-bed8/s400/DSC02252.JPG",pt:[8.063479,-11.42252]}
+			]},
+		{name:"ONE",website:"http://www.one.org",video:"http://www.youtube.com/watch?v=lPUXj7EqGWw",
+			pts:[
+				{name:"OLPCorps Senegal",details:"Students from U. Miami and U. Minnesota teamed up for this deployment<br/><br/><a href='http://www.one.org/blog/?p=7703' target='_blank'>Report from ONE.org</a><br/><br/><a href='http://africaxo.blogspot.com/' target='_blank'>Blog</a>",photo:"http://farm4.static.flickr.com/3500/3833004781_f0533a4c32.jpg",pt:[14.26638,-16.34697]}
+			]},
+		{name:"Intenge Development Foundation",website:"http://olpcorpsnamibiangoma.wordpress.com/idf-ngo-community-based-organization-in-caprivi/",
+			pts:[
+				{name:"OLPCorps Namibia-Ngoma",details:"<br/><br/><a href='http://olpcorpsnamibiangoma.wordpress.com/' target='_blank'>Blog</a>",pt:[-20.131298,19.510431]}
+			]},
+		{name:"One Here One There",website:"http://onehereonethere.org",
+			pts:[
+				{name:"OLPCorps IU",details:"Students from Indiana University. Installed an electric generator and ran a short student newspaper-writing project.<br/><br/><a href='http://2009iuohot.blogspot.com/' target='_blank'>Blog</a>",pt:[-24.153019,29.351349]}
+			]},
+		{name:"OLPCorps",
+			pts:[
+				{name:"OLPCorps:Niger",details:"University of Lagos,Royal Holloway University of London,and University of Salford students",pt:[8.762429,5.799923]},
+				{name:"OLPCorps:Sierr&#1072; Leone",details:"Tulane University and UC Davis students",pt:[8.760054,-12.572136]},
+				{name:"OLPCorps:U of Education,Winneba",pt:[6.14128,-1.670179]},
+				{name:"OLPCorps:U. Kinhasa",pt:[-1.710866,28.959188]},
+				{name:"OLPCorps:U of Ibadan",details:"This project is targeted at empowering people with disabilities by improving their access to technology.<br/><br/><a href='http://abledisableinxo.blogspot.com' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_HbCc4VF-oTw/Splp_fs_JvI/AAAAAAAAADs/xI-fu0xLxWw/s320/teaching.jpg",pt:[9.277909,10.195785]},
+				{name:"OLPCorps:CUNY Baruch",pt:[8.407168,0.087891]},
+				{name:"OLPCorps:Soweto",details:"Deployment with detailed updates for the Global Post<br/><br/><a href='http://oplokhii.blogspot.com' target='_blank'>Blog</a>",pt:[-26.194877,27.993164],photo:"http://3.bp.blogspot.com/_jBm2wqTTQu8/SpX-ytitHwI/AAAAAAAAAQ4/PnIoAZ7bGME/s320/IMG_9629.JPG"},
+				{name:"OLPCorps:Mauritani&#1072;",details:"Students from Cornell University",pt:[14.349548,-16.918945]},
+				{name:"OLPCorps:Ungana Foundation",details:"Students from Utah State University supported the Ungana Foundation's effort to extend and support OLPC Rwanda<br/><br/><a href='http://unganafoundation.blogspot.com/'>Blog</a>",photo:"http://1.bp.blogspot.com/_EkMPu5bJnVU/Sqav0piu-cI/AAAAAAAAAPI/C3ZKbTbPpFA/s400/P1010406.JPG",pt:[-1.83406,29.486618]},
+				{name:"OLPCorps:Heritage Nigeri&#1072;",details:"Students from Texas A&M University<br/><br/><a href='http://olpcheritagenigeria.blogspot.com/' target='_blank'>Blog</a>",pt:[6.509768,3.537598],photo:"http://2.bp.blogspot.com/_ytQa4_LpsOk/SnfG0uka1-I/AAAAAAAAAFk/A5D3QoWvDkQ/s320/IMG_1478.JPG"},
+				{name:"OLPCorps:Zimb&#1072;bwe",details:"Students from Macalester College,Midlands State University,and University of Zimbabwe - installed solar and then national grid power<br/><br/><a href='http://olpcorpszimbabwe09.blogspot.com' target='_blank'>Blog</a>",pt:[-17.137838,31.072083]},
+				{name:"OLPCorps:Madagasc&#1072;r",details:"Students from GWU and U Maryland<br/><br/><a href='http://ampitso.wordpress.com/' target='_blank'>Blog</a>",photo:"http://ampitso.smugmug.com/photos/638764729_UCofq-M.jpg",pt:[-13.57024,49.306641]},
+				{name:"OLPCorps:Laval University",details:"<br/><br/><a href='http://collabo.fse.ulaval.ca/olpc/' target='_blank'>Website</a>",photo:"http://collabo.fse.ulaval.ca/olpc/images/teach.jpg",pt:[3.387307,12.877007]},
+				{name:"OLPCorps:Tanzani&#1072;",details:"Students from Tumaini University.<br/><br/>The school was connected to the internet<br/><br/><a href='http://mot-tumaini.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_z6OVkOJNvTQ/SpvI0dyRxGI/AAAAAAAAAO4/ukhEnWkZXEg/s320/IMG0011A.jpg",pt:[-7.794677,35.690117]},
+				{name:"OLPCorps:Vutakak&#1072;",details:"Students from U. Washington and the New School<br/><br/><a href='http://vutakakaolpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://4.bp.blogspot.com/_C_wadBS6-ek/SmX5aiSypyI/AAAAAAAAIzg/XKbSjGgYCoo/s320/100_0057.jpg",pt:[-3.513421,39.835739]},
+				{name:"OLPCorps:Kampal&#1072;",details:"Still operating (though not online). Supported by MIT and Wellesley College<br/><br/><a href='http://uganda-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://2.bp.blogspot.com/_Sm-Wjgh0ZWk/SlCq2EOvw2I/AAAAAAAAABU/Xm_8bmDF7tY/s320/olpc_kps_10.JPG",pt:[0.29663,32.640381]},
+				{name:"OLPCorps:GTech",details:"Students from Grahamstown and Gettysburg <a href='http://picasaweb.google.com/aimeegeorge/PicsFromGTECHSouthAfrica?feat=email#' target='_blank'>Photos Page</a><br/><br/><a href='http://gtech-olpc.blogspot.com/' target='_blank'>Blog</a>",photo:"http://lh3.ggpht.com/_7PSu0kxiZPQ/SrrntMYgpLI/AAAAAAAABFY/41saWNP1JNw/s640/P1080072.JPG",pt:[-33.315037,26.548634]},
+				{name:"OLPCorps:Kwame Nkrumah U.",pt:[7.227441,-0.747414]}
+			]}
+	];
+	myPoints=[];''')
+		myResults = None
+		results = None
+		hiddenGeoResults = None
+		directGeo = 1
+		mapImgUrl = None
+		try:
+			if(self.request.get('llcenter') != ''):
+				directGeo = 0
+				ctr_lat = self.request.get('llcenter').replace('%20','').split(',')[0]
+				ctr_lng = self.request.get('llcenter').replace('&20','').split(',')[1]
+				radius = float(self.request.get('km-distance'))
+				results = GeoRefUsermadeMapPoint.proximity_fetch(
+					GeoRefUsermadeMapPoint.all(),
+					geotypes.Point(float(ctr_lat),float(ctr_lng)),
+					max_results=100,
+					max_distance=1000 * radius)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
+					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Point(float(ctr_lat),float(ctr_lng)),
+						max_results=100,
+						max_distance=1000 * radius
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+					self.response.out.write('center=['+ ctr_lat + "," + ctr_lng + '];\nrad="'+str(radius)+'";\n')
+			elif(self.request.get('llregion') != ''):
+				directGeo = 0
+				ne_lat = self.request.get('llregion').replace('%20','').split(',')[0]
+				ne_lng = self.request.get('llregion').replace('%20','').split(',')[1]
+				sw_lat = self.request.get('llregion').replace('%20','').split(',')[2]
+				sw_lng = self.request.get('llregion').replace('%20','').split(',')[3]
+				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
+					GeoRefUsermadeMapPoint.all(),
+					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+					max_results=100
+				)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+						max_results=100
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+					self.response.out.write('center=['+ str((float(ne_lat)+float(sw_lat))/2) + "," + str((float(ne_lng)+float(sw_lng))/2) + '];box="' + ne_lat +"," + ne_lng + "," + sw_lat + "," + sw_lng + '";\n')
+
+			elif(self.request.get('llregions') != ''):
+				# &llregions=llregion1|llregion2
+				directGeo = 0
+				llregions = self.request.get('llregions').split('|')
+				minlat=90
+				minlng=180
+				maxlat=-90
+				maxlng=-180
+				for llregion in llregions:
+					llregion=llregion.replace('%20','').split(',')
+					ne_lat=float(llregion[0])
+					if(ne_lat<minlat):
+						minlat=ne_lat
+					if(ne_lat>maxlat):
+						maxlat=ne_lat
+					ne_lng=float(llregion[1])
+					if(ne_lng<minlng):
+						minlng=ne_lng
+					if(ne_lng>maxlng):
+						maxlng=ne_lng
+					sw_lat=float(llregion[2])
+					if(sw_lat<minlat):
+						minlat=sw_lat
+					if(sw_lat>maxlat):
+						maxlat=sw_lat
+					sw_lng=float(llregion[3])
+					if(sw_lng<minlng):
+						minlng=sw_lng
+					if(sw_lng>maxlng):
+						maxlng=sw_lng
+					if(results is None):
+						results=GeoRefUsermadeMapPoint.bounding_box_fetch(
+							GeoRefUsermadeMapPoint.all(),
+							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
+							max_results=100
+						)					
+					else:
+						results=results+GeoRefUsermadeMapPoint.bounding_box_fetch(
+							GeoRefUsermadeMapPoint.all(),
+							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
+							max_results=100
+						)
+					if(self.request.get('map')=='image'):
+						if(hiddenGeoResults is None):
+							hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
+								GeoRefMapPoint.all(),
+								geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+								max_results=100
+							)
+						else:
+							hiddenGeoResults = hiddenGeoResults + GeoRefMapPoint.bounding_box_fetch(
+								GeoRefMapPoint.all(),
+								geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+								max_results=100
+							)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ str(minlat) +',' + str(minlng) + '),new google.maps.LatLng(' + str(maxlat) +',' + str(maxlng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + str(maxlat) + "," + str(maxlng) + "|" + str(minlat) + "," + str(minlng)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+						self.response.out.write('center=['+ str((ne_lat+sw_lat)/2) + "," + str((ne_lng+sw_lng)/2) + '];box="' + str(maxlat) +"," + str(maxlng) + "," + str(minlat) + "," + str(minlng) + '";\n')				
+
+			elif(self.request.get('center') != ''):
+				directGeo = 0
+				ctr_lat = None
+				ctr_lng = None
+				suggestCtr = memcache.get("center:" + cgi.escape(self.request.get('center')))
+				if(suggestCtr is not None):
+					# center was in memcache
+					ctr_lat = suggestCtr.split(",")[0]
+					ctr_lng = suggestCtr.split(",")[1]
+				else:
+					llcenter = fetch("http://where.yahooapis.com/geocode?appid=M0hEoK7i&flags=CJ&q=" + self.request.get('center'), payload=None, method=GET, headers={}, allow_truncated=False, follow_redirects=True).content
+					ctr_lat = llcenter[llcenter.find('latitude')+11:len(llcenter)]
+					ctr_lat = ctr_lat[0:ctr_lat.find('"')]
+					ctr_lng = llcenter[llcenter.find('longitude')+12:len(llcenter)]
+					ctr_lng = ctr_lng[0:ctr_lng.find('"')]
+					memcache.add("center:" + cgi.escape(self.request.get('center')),ctr_lat + "," + ctr_lng,500000)
+				radius = float(self.request.get('km-distance'))
+				results = GeoRefUsermadeMapPoint.proximity_fetch(
+						GeoRefUsermadeMapPoint.all(),
+						geotypes.Point(float(ctr_lat),float(ctr_lng)),
+						max_results=100,
+						max_distance=1000 * radius)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
+					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Point(float(ctr_lat),float(ctr_lng)),
+						max_results=100,
+						max_distance=1000 * radius
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+					self.response.out.write('center=['+ ctr_lat + "," + ctr_lng + '];\nrad="'+str(radius)+'";')
+
+			elif(self.request.get('region') != ''):
+				directGeo = 0
+				ne_lat=None
+				ne_lng=None
+				sw_lat=None
+				sw_lng=None
+				suggestRgn = memcache.get("region:" + cgi.escape(self.request.get('region')))
+				if(suggestRgn is not None):
+					# center was in memcache
+					suggestRgn=suggestRgn.split(",")
+					ne_lat = suggestRgn[0]
+					ne_lng = suggestRgn[1]
+					sw_lat = suggestRgn[2]
+					sw_lng = suggestRgn[3]
+				else:
+					llregion = fetch("http://where.yahooapis.com/geocode?appid=M0hEoK7i&flags=CJX&q=" + self.request.get('region'), payload=None, method=GET, headers={}, allow_truncated=False, follow_redirects=True).content
+					ne_lat = llregion[llregion.find('north')+8:len(llregion)]
+					ne_lat = ne_lat[0:ne_lat.find('"')]
+					ne_lng = llregion[llregion.find('east')+7:len(llregion)]
+					ne_lng = ne_lng[0:ne_lng.find('"')]
+					sw_lat = llregion[llregion.find('south')+8:len(llregion)]
+					sw_lat = sw_lat[0:sw_lat.find('"')]
+					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
+					sw_lng = sw_lng[0:sw_lng.find('"')]
+					memcache.add("region:" + cgi.escape(self.request.get('region')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
+					GeoRefUsermadeMapPoint.all(),
+					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+					max_results=100
+				)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+						max_results=100
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+					self.response.out.write('center=['+ str((float(ne_lat)+float(sw_lat))/2) + "," + str((float(ne_lng)+float(sw_lng))/2) + '];\nbox="'+ne_lat+","+ne_lng+","+sw_lat+","+sw_lng+'"\n')
+
+			elif(self.request.get('go') != ''):
+				directGeo = 0
+				ne_lat=None
+				ne_lng=None
+				sw_lat=None
+				sw_lng=None
+				suggestRgn = memcache.get("region:" + cgi.escape(self.request.get('go')))
+				if(suggestRgn is not None):
+					# center was in memcache
+					suggestRgn=suggestRgn.split(",")
+					ne_lat = suggestRgn[0]
+					ne_lng = suggestRgn[1]
+					sw_lat = suggestRgn[2]
+					sw_lng = suggestRgn[3]
+				else:
+					llregion = fetch("http://where.yahooapis.com/geocode?appid=M0hEoK7i&flags=CJX&q=" + self.request.get('go'), payload=None, method=GET, headers={}, allow_truncated=False, follow_redirects=True).content
+					ne_lat = llregion[llregion.find('north')+8:len(llregion)]
+					ne_lat = ne_lat[0:ne_lat.find('"')]
+					ne_lng = llregion[llregion.find('east')+7:len(llregion)]
+					ne_lng = ne_lng[0:ne_lng.find('"')]
+					sw_lat = llregion[llregion.find('south')+8:len(llregion)]
+					sw_lat = sw_lat[0:sw_lat.find('"')]
+					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
+					sw_lng = sw_lng[0:sw_lng.find('"')]
+					memcache.add("region:" + cgi.escape(self.request.get('go')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
+					GeoRefUsermadeMapPoint.all(),
+					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+					max_results=100
+				)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
+						max_results=100
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
+					self.response.out.write('center=['+ str((float(ne_lat)+float(sw_lat))/2) + "," + str((float(ne_lng)+float(sw_lng))/2) + '];\nbox="'+ne_lat+","+ne_lng+","+sw_lat+","+sw_lng+'"\n')
+
+			elif((self.request.get('km-distance') != '') and (self.request.get('id') != '')):
+				directGeo = 0
+				ctrPoint = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+				radius = float(self.request.get('km-distance'))
+				results = GeoRefUsermadeMapPoint.proximity_fetch(
+					GeoRefUsermadeMapPoint.all(),
+					geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
+					max_results=100,
+					max_distance=1000 * radius)
+				if(self.request.get('map') == ''):
+					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon) + '), radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
+				elif(self.request.get('map') == 'image'):
+					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon)
+					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
+						GeoRefMapPoint.all(),
+						geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
+						max_results=100,
+						max_distance=1000 * radius
+					)
+				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast') ):
+					self.response.out.write('center=['+ str(ctrPoint.location.lat) + "," + str(ctrPoint.location.lon) + '];\nrad="' + str(radius) + '";')
+		except:
+			directGeo = 1
+
+		if(directGeo == 1):
+			oldPoints = memcache.get('oldPoints')
+			if(oldPoints is None):
+				oldr = Oldest()
+				oldPoints = oldr.snap()
+			newPoints = memcache.get('newPoints')
+			if(newPoints is None):
+				newr = Newest()
+				newPoints = newr.snap()
+			myResults = oldPoints + newPoints
+		if myResults is not None:
+			self.response.out.write(myResults)
+			mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			results = mapPoints.fetch(30)
+			resultOut = u''
+			for pt in results:
+				resultOut = resultOut + u'pS({name:"'
+				usename = cgi.escape(pt.name)
+				if(usename.find("privatized") != -1):
+					fixname = usename.replace("privatized:","")
+					sndNames = 0
+					outname = ""
+					for letter in fixname:
+						if(sndNames == 0):
+							outname = outname + letter
+						elif(sndNames == -1):
+							outname = outname + letter
+							sndNames = 1
+						if(letter == " "):
+							sndNames = -1
+							outname = outname + " "
+					usename = outname
+				resultOut = resultOut + cgi.escape(usename).replace('"','\\"') + u'",id:"' + str(pt.key().id()) + u'",pt:[' + str(pt.location.lat) + "," + str(pt.location.lon) + u'],icon:"' + cgi.escape(pt.icon or "").replace('"','\\"') + u'",details:"'
+				resultOut = resultOut + cgi.escape(pt.details or "").replace('"','\\"').replace("&lt;","<").replace("&gt;",">").replace('\\n','<br/>').replace('\\r','<br/>').replace('\n','<br/>').replace('\r','<br/>') + '"'
+				if(pt.tabs is not None):
+					resultOut = resultOut + u',tabs:["' + '","'.join(pt.tabs) + '"]'
+				resultOut = resultOut + u',photo:"' + cgi.escape(pt.photo or "").replace('"','\\"') + u'",album:"' + cgi.escape(pt.album or "").replace('"','\\"') + u'",group:"' + cgi.escape(pt.group or "").replace('"','\\"').replace("&lt;a","<a").replace("&lt;/a","</a").replace("&gt;",">") + u'",icon:"' + cgi.escape(pt.icon or "") + u'"});\n'
+			self.response.out.write(resultOut)
+		else:
+			mapPoints = None
+			#mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			if(results is None):
+				mapPoints = GeoRefUsermadeMapPoint.all()
+				if mapPoints is not None:
+					results = mapPoints.fetch(200)
+		self.response.out.write('''	//point styles
+	var layer_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
+	layer_style.fillOpacity = 0.2;
+	layer_style.graphicOpacity = 1;
+
+	//icon style
+	style_blue = OpenLayers.Util.extend({}, layer_style);
+	style_blue.strokeColor = "blue";
+	style_blue.fillColor = "blue";
+	style_blue.graphicName = "square";
+	style_blue.pointRadius = 12;
+	style_blue.strokeWidth = 0;
+	style_blue.rotation = 0;
+	style_blue.externalGraphic ="http://chart.apis.google.com/chart?chst=d_map_pin_icon&chld=location|FF0000";
+
+	mapMrks=new OpenLayers.Layer.Vector("Markers", {style: layer_style});
+	newMrkrs = new OpenLayers.Layer.Vector("New Markers", {style: layer_style});
+	map.addLayer(newMrkrs);
+	dragFeature = new OpenLayers.Control.DragFeature(newMrkrs,{'onComplete': onCompleteMove} )
+
+	for(var myPt=0;myPt<myPoints.length;myPt++){
+		var point,pointFeature;
+		if(myPoints[myPt].icon.toLowerCase().indexOf("default") != -1){
+			myPoints[myPt].icon="";
+		}
+		if(myPoints[myPt].icon.length > 6){
+			point = new OpenLayers.Geometry.Point(myPoints[myPt].pt[1],myPoints[myPt].pt[0]).transform(map.displayProjection,  map.projection);
+			var myStyle	= OpenLayers.Util.extend({}, style_blue);
+			myStyle.externalGraphic=myPoints[myPt].icon;
+			pointFeature=new OpenLayers.Feature.Vector(point,null,myStyle);
+			pointFeature.attributes={title:myPoints[myPt].name,description:setupContent(myPt)};
+			mapMrks.addFeatures([pointFeature]);
+		}
+		else{
+			point = new OpenLayers.Geometry.Point(myPoints[myPt].pt[1],myPoints[myPt].pt[0]).transform(map.displayProjection,  map.projection);
+			var myStyle	= OpenLayers.Util.extend({}, style_blue);
+			myStyle.externalGraphic=randIcon();
+			pointFeature=new OpenLayers.Feature.Vector(point,null,myStyle);
+			pointFeature.attributes={title:myPoints[myPt].name,description:setupContent(myPt)};
+			mapMrks.addFeatures([pointFeature]);
+		}
+		myPoints[myPt].marker=pointFeature;
+		if(!myPoints[myPt].group){myPoints[myPt].group="";}
+	}
+	for(var mOrg=0;mOrg<orgs.length;mOrg++){
+		if(orgs[mOrg].ajax){
+			for(var mAj=0;mAj<orgs[mOrg].ajax.length;mAj++){
+				if(specialRegion){
+					if(orgs[mOrg].ajax[mAj].pt[0] > specialRegion.getBounds().getNorthEast().lat()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[0] < specialRegion.getBounds().getSouthWest().lat()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[1] > specialRegion.getBounds().getNorthEast().lng()){continue;}
+					if(orgs[mOrg].ajax[mAj].pt[1] < specialRegion.getBounds().getSouthWest().lng()){continue;}
+				}
+				var point = new OpenLayers.Geometry.Point(orgs[mOrg].ajax[mAj].pt[1],orgs[mOrg].ajax[mAj].pt[0]).transform(map.displayProjection,  map.projection);
+				pointFeature = new OpenLayers.Feature.Vector(point,null,style_blue);
+				pointFeature.attributes={title:orgs[mOrg].ajax[mAj].name,description:"Click for Clusters",query:orgs[mOrg].ajax[mAj].query};
+				mapMrks.addFeatures([pointFeature]);
+				//icon:"http://mapmeld.appspot.com/cluster-icon.jpg"
+			}
+		}
+		if(orgs[mOrg].pts){
+			if(orgs[mOrg].pts.length>0){
+				for(var mPt=0;mPt<orgs[mOrg].pts.length;mPt++){
+					if(specialRegion){
+						if(orgs[mOrg].pts[mPt].pt[0] > specialRegion.getBounds().getNorthEast().lat()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[0] < specialRegion.getBounds().getSouthWest().lat()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[1] > specialRegion.getBounds().getNorthEast().lng()){continue;}
+						if(orgs[mOrg].pts[mPt].pt[1] < specialRegion.getBounds().getSouthWest().lng()){continue;}
+					}
+					orgs[mOrg].pts[mPt].id = "mOrg:" + mOrg + ":mPt:" + mPt;
+					orgs[mOrg].pts[mPt].group = orgs[mOrg].name;
+					var suggested=pU(orgs[mOrg].pts[mPt]);
+					if(suggested){
+						var point = new OpenLayers.Geometry.Point(orgs[mOrg].pts[mPt].pt[1],orgs[mOrg].pts[mPt].pt[0]).transform(map.displayProjection,  map.projection);
+						var myStyle	= OpenLayers.Util.extend({}, style_blue);
+						myStyle.externalGraphic=randIcon();
+						pointFeature = new OpenLayers.Feature.Vector(point,null,myStyle);
+						pointFeature.attributes={title:orgs[mOrg].pts[mPt].name,description:setupContent(myPoints.length-1)};
+						mapMrks.addFeatures([pointFeature]);
+						myPoints[myPoints.length-1].marker=pointFeature;
+					}
+				}
+			}
+		}
+	}
+	map.addLayer(mapMrks);
+	
+	selectControl = new OpenLayers.Control.SelectFeature(mapMrks);
+	map.addControl(selectControl);
+	selectControl.activate();
+	mapMrks.events.on({
+		'featureselected': onFeatureSelect,
+		'featureunselected': onFeatureUnselect
+	});
+	
+	if(gup("id")){
+		var ptID=gup("id");
+		for(var mPt=0;mPt<myPoints.length;mPt++){
+			if(myPoints[mPt].id==ptID){
+				if(!specialRegion){
+					map.setCenter(myPoints[mPt].marker.geometry.getBounds().getCenterLonLat(),12);
+				}
+				infoWindow.setContent(setupContent(mPt));
+				infoWindow.open(map,myPoints[mPt].marker);
+				break;
+			}
+		}
+	}
+	if(gup("q")){
+		searchAccept("geoq "+gup("q"));
+	}
+}
+function onPopupClose(evt) {
+	try{
+		selectControl.unselect(this.feature);
+	}catch(e){}
+	isEditor=false;
+	ekey=null;
+}
+function onFeatureSelect(evt) {
+	if(popup){map.removePopup(popup)}
+	var feature=evt.feature;
+	if(feature.attributes.query){
+		var jsonScript=document.createElement("script")
+		jsonScript.src="http://mapmeld.appspot.com/olpcMAP" + feature.attributes.query + "&format=ol-js";
+		$("head").appendChild(jsonScript);
+		mapMrks.removeFeatures([feature]);
+		return;
+	}
+	var center=feature.geometry.getBounds().getCenterLonLat();
+	lastOpen=feature;
+	var manyMarkers=getNearbyMarkers(center);
+	if(manyMarkers.length > 1){
+		var pageViewer;
+		pageViewer="<div style='min-width:280px;'><div style='margin-left:auto;margin-right:auto;'><br/>";
+		var tablesOn=false;
+		if(manyMarkers.length > 10){
+			tablesOn=true;
+			pageViewer+="<table><tr><td>";
+		}
+		pageViewer+="<ul>";
+		for(var mPt=0;mPt<manyMarkers.length;mPt++){
+			if((tablesOn)&&(mPt%10==0)&&(mPt!=0)){
+					if(mPt > 30){break;}
+					pageViewer+='</ul></td><td><ul>';
+			}
+			pageViewer+='<li><a href="#" onclick="searchAccept('+"'myPoint "+manyMarkers[mPt].id+"'"+')">'+manyMarkers[mPt].name+'</a></li>';
+		}
+		pageViewer+="</ul>";
+		if(tablesOn){
+			pageViewer+="</td></tr></table>";
+		}
+		pageViewer+="</div></div>";
+		popup = new OpenLayers.Popup.FramedCloud("featurePopup",
+			center,
+			new OpenLayers.Size(400,300),
+			"<h3>Many at this location: <a href='#' onclick='map.setCenter(new OpenLayers.LonLat(" + center.lon + ","+ center.lat + "),"+(map.getZoom()+2)+");'>Zoom</a></h3>" +
+			pageViewer,
+			null, true, onPopupClose);
+	}
+	else{
+		popup = new OpenLayers.Popup.FramedCloud("featurePopup",
+			center,
+			new OpenLayers.Size(400,300),
+			feature.attributes.description,
+			null, true, onPopupClose);
+	}
+	feature.popup = popup;
+	popup.feature = feature;
+	map.addPopup(popup);
+}
+function onFeatureUnselect(evt) {
+	feature = evt.feature;
+	if (feature.popup) {
+		popup.feature = null;
+		map.removePopup(feature.popup);
+		feature.popup.destroy();
+		feature.popup = null;
+	}
+}
+function p(pointData){
+	myPoints.push(pointData);
+}
+function randIcon(){
+	var randIcon;
+	var randIconI=Math.floor(Math.random()*18);
+	switch(randIconI){
+		case 0:
+			randIcon="http://google-maps-icons.googlecode.com/files/computer.png";
+			break;
+		case 1:
+			randIcon="http://google-maps-icons.googlecode.com/files/world.png";
+			break;
+		case 2:
+			randIcon="http://google-maps-icons.googlecode.com/files/industrialmuseum.png";
+			break;
+		case 3:
+			randIcon="http://google-maps-icons.googlecode.com/files/music-classical.png";
+			break;
+		case 4:
+			randIcon="http://google-maps-icons.googlecode.com/files/postal.png";
+			break;
+		case 5:
+			randIcon="http://google-maps-icons.googlecode.com/files/housesolarpanel.png";
+			break;
+		case 6:
+			randIcon="http://google-maps-icons.googlecode.com/files/park.png";
+			break;
+		case 7:
+			randIcon="http://google-maps-icons.googlecode.com/files/laboratory.png";
+			break;
+		case 8:
+			randIcon="http://google-maps-icons.googlecode.com/files/university.png";
+			break;
+		case 9:
+			randIcon="http://google-maps-icons.googlecode.com/files/daycare.png";
+			break;
+		case 10:
+			randIcon="http://google-maps-icons.googlecode.com/files/school.png";
+			break;
+		case 11:
+			randIcon="http://google-maps-icons.googlecode.com/files/bookstore.png";
+			break;
+		case 12:
+			randIcon="http://google-maps-icons.googlecode.com/files/workoffice.png";
+			break;
+		case 13:
+			randIcon="http://google-maps-icons.googlecode.com/files/photo.png";
+			break;
+		case 14:
+			randIcon="http://google-maps-icons.googlecode.com/files/bigcity.png";
+			break;
+		case 15:
+			randIcon="http://google-maps-icons.googlecode.com/files/places-unvisited.png";
+			break;
+		case 16:
+			randIcon="http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png";
+			break;
+		case 17:
+			randIcon="http://google-maps-icons.googlecode.com/files/flowers.png";
+			break;
+	}
+	return randIcon;
+}
+function onCompleteMove(feature){}
+function writeSearchCat(category,resultsList){
+	if(resultsList.length==0){return ""}
+	var searchCat='<div class="searchCat">' + category + '</div><ul class="searchList">';
+	for(var sR=0;sR<resultsList.length;sR++){
+		var provenName=resultsList[sR].name;
+		while(provenName.indexOf("<")!=-1){
+			provenName=provenName.replace("<","&lt;");
+		}
+		if(resultsList[sR].href){
+			if(resultsList[sR].sharer){
+				searchCat+='<li><span onclick="searchAccept('+"'"+resultsList[sR].acceptance+"'"+')">' + provenName + ' <a href="' + resultsList[sR].href + '" target="_blank">(Link)</a></span>';			
+				searchCat+='<br/><small><i>shared by <a href="#" onclick="searchAccept(' + "'" + 'byName ' + resultsList[sR].sharer + "');" + '">' + resultsList[sR].sharer + '</a></i></small>';
+			}
+			else{
+				searchCat+='<li onclick="searchAccept('+"'"+resultsList[sR].acceptance+"'"+')">' + provenName + ' <a href="' + resultsList[sR].href + '" target="_blank">(Link)</a>';			
+			}
+			searchCat+='</li>';
+		}
+		else{
+			searchCat+='<li onclick="searchAccept('+"'"+resultsList[sR].acceptance+"'"+')">' + provenName + '</li>';
+		}
+	}
+	searchCat+="</ul>"
+	return searchCat;
+}
+function searchAccept(term){
+	if(term.indexOf("viewport")==0){
+		term=term.replace("viewport ","").split(",");
+		map.zoomToExtent(new OpenLayers.Bounds(term[3],term[2],term[1],term[0]).transform(map.displayProjection,map.projection));
+	}
+	else if(term.indexOf("byName")==0){
+		$("searchbox").value=term.replace("byName ","");
+		searchSearchBox();
+	}
+	else if(term.indexOf("latlng")==0){
+		term=term.replace("latlng","").replace(" ","").split(",");
+		map.setCenter(new OpenLayers.LonLat(term[1],term[0]),12);
+		map.setZoom(12);
+	}
+	else if(term.indexOf("myPoint")==0){
+		var ptID=term.replace("myPoint","").replace(" ","");
+		for(var mPt=0;mPt<myPoints.length;mPt++){
+			if(myPoints[mPt].id==ptID){
+				if(!specialRegion){
+					map.setCenter(myPoints[mPt].marker.geometry.getBounds().getCenterLonLat(),12);
+				}
+				var feature=myPoints[mPt].marker;
+				if(popup){map.removePopup(popup)}
+				popup = new OpenLayers.Popup.FramedCloud("featurePopup",
+						feature.geometry.getBounds().getCenterLonLat(),
+						new OpenLayers.Size(100,100),
+						feature.attributes.description,
+						null, true, onPopupClose);
+				feature.popup = popup;
+				popup.feature = feature;
+				map.addPopup(popup);
+				break;
+			}
+		}
+	}
+	else if(term.indexOf("geoq") != -1){
+		term = term.replace("geoq ","").replace("geoq","");
+		/*geocoder.geocode({'address':term},
+			function(results,status){
+				if(status==google.maps.GeocoderStatus.OK){
+					if(results[0].geometry.viewport){
+						map.fitBounds(results[0].geometry.viewport);
+					}
+					else{
+						map.setCenter(results[0].geometry.location,12);
+						map.setZoom(12);
+					}
+				}
+			}
+		);*/	
+	}
+	else if(term.indexOf("mOrg")==0){
+		term=term.replace("mOrg ","");
+		uniqueGroup=orgs[term];
+		if(uniqueGroup.pts.length == 1){
+			map.setCenter(new OpenLayers.LonLat(uniqueGroup.pts[0].pt[1],uniqueGroup.pts[0].pt[0]),16);
+			approxd="<span class='topResult'>&rarr;"+uniqueGroup.name+"</span>";
+		}
+		else if(uniqueGroup.pts.length == 0){
+			map.setCenter(new OpenLayers.LonLat(uniqueGroup.ajax[0].pt[1],uniqueGroup.ajax[0].pt[0]),16);
+			var qScript=document.createElement("script");
+			qScript.src="http://mapmeld.appspot.com/olpcMAP" + uniqueGroup.ajax[0].query + "&format=ol-js&act=center";
+			document.body.appendChild(qScript);
+			approxd="<span class='topResult'>Loading "+uniqueGroup.name+"</span>";
+		}
+		else{
+			var northMost=uniqueGroup.pts[0].pt[0];
+			var southMost=uniqueGroup.pts[0].pt[0];
+			var eastMost=uniqueGroup.pts[0].pt[1];
+			var westMost=uniqueGroup.pts[0].pt[1];
+			for(var grpPt=1;grpPt<uniqueGroup.pts.length;grpPt++){
+				if(uniqueGroup.pts[grpPt].pt[0] > northMost){
+					northMost=uniqueGroup.pts[grpPt].pt[0];
+				}
+				else if(uniqueGroup.pts[grpPt].pt[0] < southMost){
+					southMost=uniqueGroup.pts[grpPt].pt[0];
+				}
+				if(uniqueGroup.pts[grpPt].pt[1] > eastMost){
+					eastMost=uniqueGroup.pts[grpPt].pt[1];
+				}
+				else if(uniqueGroup.pts[grpPt].pt[1] < westMost){
+					westMost=uniqueGroup.pts[grpPt].pt[1];
+				}
+			}
+			map.zoomToExtent(new OpenLayers.Bounds(eastMost,northMost,westMost,southMost).transform(map.displayProjection,map.projection));
+			approxd="<span class='topResult'>&rarr;"+uniqueGroup.name+"</span>";
+		}
+	}
+	try{$("approxd").innerHTML="Choose a result"}catch(e){}
+}
+function gup(nm){nm=nm.replace(/[\[]/,"\[").replace(/[\]]/,"\]");var rxS="[\?&]"+nm+"=([^&#]*)";var rx=new RegExp(rxS);var rs=rx.exec(window.location.href);if(!rs){return null;}else{return rs[1];}}
+function searchSearchBox(){
+	makeSearch($("searchbox").value);
+}
+function makeSearch(search){
+	approxd=null;
+	joinNetwork=true;
+	searchCats="";
+	$("searchResBox").style.display="block";
+	var uniqueGroup = null;
+	var matchItems = [];
+	for(var grp=0;grp<orgs.length;grp++){
+		if(orgs[grp].name.toLowerCase().indexOf(search.toLowerCase()) != -1){
+			if(uniqueGroup==null){
+				uniqueGroup = orgs[grp];
+			}
+			else{
+				uniqueGroup = -1;
+			}
+			matchItems.push({name:orgs[grp].name,acceptance:"mOrg " + grp});
+		}
+		else if(orgs[grp].details!=null){
+			if(orgs[grp].details.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(uniqueGroup==null){
+					uniqueGroup = orgs[grp];
+				}
+				else{
+					uniqueGroup = -1;
+				}
+				matchItems.push({name:orgs[grp].name,acceptance:"mOrg " + grp});
+			}
+		}
+	}
+	if((uniqueGroup != null) && (approxd==null)){
+		if(uniqueGroup!=-1){
+			if(uniqueGroup.pts.length==1){
+				map.setCenter(new OpenLayers.LonLat(uniqueGroup.pts[0].pt[1],uniqueGroup.pts[0].pt[0]).transform(map.projection,map.displayProjection));
+				map.setZoom(16);
+				approxd="<span class='topResult'>&rarr;"+uniqueGroup.name+"</span>";
+			}
+			else if(uniqueGroup.pts.length == 0){
+				map.setCenter(new OpenLayers.LonLat(uniqueGroup.ajax[0].pt[1],uniqueGroup.ajax[0].pt[0]).transform(map.projection,map.displayProjection));
+				map.setZoom(16);
+				var qScript=document.createElement("script");
+				qScript.src="http://mapmeld.appspot.com/olpcMAP" + uniqueGroup.ajax[0].query + "&format=js&act=center";
+				document.body.appendChild(qScript);
+				approxd="<span class='topResult'>Loading "+uniqueGroup.name+"</span>";
+			}
+			else{
+				var northMost=uniqueGroup.pts[0].pt[0];
+				var southMost=uniqueGroup.pts[0].pt[0];
+				var eastMost=uniqueGroup.pts[0].pt[1];
+				var westMost=uniqueGroup.pts[0].pt[1];
+				for(var grpPt=1;grpPt<uniqueGroup.pts.length;grpPt++){
+					if(uniqueGroup.pts[grpPt].pt[0] > northMost){
+						northMost=uniqueGroup.pts[grpPt].pt[0];
+					}
+					else if(uniqueGroup.pts[grpPt].pt[0] < southMost){
+						southMost=uniqueGroup.pts[grpPt].pt[0];
+					}
+					if(uniqueGroup.pts[grpPt].pt[1] > eastMost){
+						eastMost=uniqueGroup.pts[grpPt].pt[1];
+					}
+					else if(uniqueGroup.pts[grpPt].pt[1] < westMost){
+						westMost=uniqueGroup.pts[grpPt].pt[1];
+					}
+				}
+				/*map.fitBounds(new google.maps.LatLngBounds(
+					new google.maps.LatLng(southMost,westMost),
+					new google.maps.LatLng(northMost,eastMost)
+				));*/
+				approxd="<span class='topResult'>&rarr;"+uniqueGroup.name+"</span>";
+			}
+		}
+	}
+	searchCats+=writeSearchCat('Groups',matchItems);
+	var uniquePoint = null;
+	matchItems=[];
+	var buried=""; // buried gives name precedence, even if term appears in two items' details or group names
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if( myPoints[mPt].name.toLowerCase().indexOf(search.toLowerCase()) != -1){
+			if(uniquePoint==null){
+				uniquePoint = myPoints[mPt];
+				uniquePoint.found = "name";
+			}
+			else if((uniquePoint != -1)||(buried=="group")||(buried=="details")){
+				if((uniquePoint.found == "details")||(uniquePoint.found == "group")||(buried=="group")||(buried=="details")){
+					uniquePoint = myPoints[mPt];
+					uniquePoint.found="name";
+					buried="";
+				}
+				else{
+					uniquePoint=-1;
+					buried="name";
+				}
+			}
+			matchItems.push({name:myPoints[mPt].name,acceptance:"myPoint " + myPoints[mPt].id});
+		}
+		else if((myPoints[mPt].group!=null)&&(myPoints[mPt].group.toLowerCase().indexOf(search.toLowerCase()) != -1)){
+			if(uniquePoint==null){
+				uniquePoint = myPoints[mPt];
+				uniquePoint.found="group";
+			}
+			else if((uniquePoint != -1)||(buried=="details")){
+				if((uniquePoint.found == "details")||(buried=="details")){
+					uniquePoint = myPoints[mPt];
+					uniquePoint.found="group";
+					buried="";
+				}
+				else if(uniquePoint.found == "group"){
+					uniquePoint=-1;
+					buried="group";
+				}
+			}
+			matchItems.push({name:myPoints[mPt].name,acceptance:"myPoint " + myPoints[mPt].id});
+		}
+		else if(myPoints[mPt].details!=null){
+			if(myPoints[mPt].details.toLowerCase().indexOf(search.toLowerCase()) != -1){
+				if(uniquePoint==null){
+					uniquePoint = myPoints[mPt];
+					uniquePoint.found = "details";
+				}
+				else if(uniquePoint != -1){
+					if(uniquePoint.found == "details"){
+						uniquePoint = -1;
+						buried="details";
+					}
+				}
+				matchItems.push({name:myPoints[mPt].name,acceptance:"myPoint " + myPoints[mPt].id});
+			}
+		}
+	}
+	if((uniquePoint!=null)&&(approxd==null)){
+		if(uniquePoint != -1){
+			approxd="<span class='topResult'>&rarr;"+uniquePoint.name+"</span>";
+			if(specialRegion==null){
+				map.setCenter(uniquePoint.marker.lonlat);
+				map.setZoom(12);
+			}
+			for(var mPt=0;mPt<myPoints.length;mPt++){
+				if(myPoints[mPt].id==uniquePoint.id){
+					infoWindow.setContent(setupContent(mPt));
+					break;
+				}
+			}
+			infoWindow.open(map,uniquePoint.marker);
+		}
+	}
+	searchCats+=writeSearchCat('Points',matchItems);
+	geocoder.geocode( { 'address':search},
+		function(results,status) {
+			if (status == google.maps.GeocoderStatus.OK){
+				if((approxd==null)&&(results[0].geometry!=null)&&(results[0].geometry.viewport!=null)){
+					map.fitBounds(results[0].geometry.viewport);
+					$("approxd").innerHTML="<span class='topResult'>&rarr;" + results[0].address_components[0].long_name + " on Google Maps</span>";
+				}
+				var googResList=[];
+				for(var googRes=0;googRes<results.length&&googRes<5;googRes++){
+					var googName=""
+					for(var gN=0;gN<results[googRes].address_components.length;gN++){
+						if(gN!=0){googName+=", ";}
+						googName+=results[googRes].address_components[gN].short_name;
+					}
+					googResList.push({name:googName,acceptance:"viewport " + results[googRes].geometry.viewport.toUrlValue()});
+				}
+				$("googMapSearch").innerHTML=writeSearchCat('Google Maps',googResList);
+			}
+			else{
+				$("approxd").innerHTML="Choose a result";
+			}
+		}
+	);
+
+	var siteScript=document.createElement('script');
+	siteScript.src="http://mapmeld.appspot.com/olpcMAP/search?q=" + search + "&out=js";
+	$("head").appendChild(siteScript);
+
+	if(approxd!=null){
+		$("searchResBox").innerHTML="<div class='searchCat'><!--<a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div>--><span id='approxd'>" + approxd + "</span></div><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
+	}
+	else{
+		$("searchResBox").innerHTML="<div class='searchCat'><!--<a href='#' onclick='closeSearch();'>&mdash;Close&mdash;</a></div>--><span id='approxd'>Google Geocoding...</span></div><hr/><div id='olpcMAPsr'></div>" + searchCats + "<div id='googMapSearch'></div>";
+	}
+}
+function closeSearch(){
+	$("searchResBox").style.display="none";
+	//map.setOptions({navigationControlOptions:{style:google.maps.NavigationControlStyle.DEFAULT}});	
+}
+var lastOpen=null;
+function getNearbyMarkers(lonlat){
+	var nMarkers=[];
+	var zoomFactor = 100 * Math.max(1, Math.pow(2,15-map.getZoom()) );
+	//var closest=10000000000000000;
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(!myPoints[mPt].marker){continue}
+		if(!myPoints[mPt].marker.geometry){continue}
+		if( Math.abs(lonlat.lat - myPoints[mPt].marker.geometry.getBounds().getCenterLonLat().lat) < zoomFactor ){
+			if( Math.abs(lonlat.lon - myPoints[mPt].marker.geometry.getBounds().getCenterLonLat().lon) < zoomFactor ){
+				nMarkers.push(myPoints[mPt]);
+			}
+		}
+		//else if(Math.abs(lonlat.lat - myPoints[mPt].marker.geometry.getBounds().getCenterLonLat().lat) < closest){
+		//	closest = Math.abs(lonlat.lat - myPoints[mPt].marker.geometry.getBounds().getCenterLonLat().lat);
+		//}
+	}
+	//alert(closest);
+	return nMarkers;
+}
+function loadNearby(markId){
+	var m,content;
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(myPoints[mPt].id == markId){
+			m = myPoints[mPt].marker;
+			content = setupContent(mPt);
+			break;
+		}
+	}
+	infoWindow.setContent(content);
+	infoWindow.open(map,m);
+}
+function pS(pointObj){
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if(myPoints[mPt].id==pointObj.id){
+			myPoints[mPt]=pointObj;
+			return;
+		}
+	}
+	myPoints.push(pointObj);
+}
+function pU(pointObj){
+	for(var mPt=0;mPt<myPoints.length;mPt++){
+		if((myPoints[mPt].pt[0]==pointObj.pt[0])&&(myPoints[mPt].pt[1]==pointObj.pt[1])){
+			return false;
+		}
+	}
+	p(pointObj);
+	return true;
+}
+function suggestEdit(){
+	editorEmail=null;
+	for(var mrk=0;mrk<myPoints.length;mrk++){
+		if(myPoints[mrk].marker == lastOpen){
+			openEditor(mrk,false);
+			return;
+		}
+	}
+}
+function addQuery(mrkr,queryType){
+	/*google.maps.event.addListener(mrkr,'click',function(){
+		mrkr.setMap(null);
+		var jsonScript=document.createElement("script")
+		jsonScript.src="http://mapmeld.appspot.com/olpcMAP" + queryType + "&format=js";
+		$("head").appendChild(jsonScript);
+	});*/
+}
+function login(){
+	$("coverwindow").style.display="block";
+}
+var joinNetwork=false;
+var clickMoveMarker=null;
+var editorEmail=null;
+function joinNetworkMode(){
+	joinNetwork=true;
+	if(popup){map.removePopup(popup)}
+	clickMoveMarker=new OpenLayers.Feature.Vector(map.getCenter(),null,style_blue);
+	clickMoveMarker.attributes={title:myPoints[myPt].name,description:setupContent(myPt)};
+	newMrkrs.addFeatures([clickMoveMarker]);
+	var content="<div style='text-align:center'><h3>Join Our Network</h3>Click the map or drag this marker to set your position.<hr/>Email:<input id='editorEmail' onkeypress='plantMarkerShow()'/><input id='plantMarkerButton' style='display:none;' type='button' value='Plant Marker' onclick='plantMarker()'/></div><br/><hr/>";
+	popup = new OpenLayers.Popup.FramedCloud("featurePopup",
+		map.getCenter(),
+		new OpenLayers.Size(400,300),
+		content,
+		null, true, onPopupClose);
+	clickMoveMarker.popup = popup;
+	popup.feature = clickMoveMarker;
+	map.addPopup(popup);
+	isEditor=true;
+}
+function plantMarkerShow(){
+	$('plantMarkerButton').style.display="block";
+	$('plantMarkerButton').style.display="inline";
+}
+function plantMarker(){
+	editorEmail = $("editorEmail").value;
+	/*google.maps.event.removeListener(reopenListener);*/
+	p({marker:clickMoveMarker,group:"",pt:[clickMoveMarker.geometry.getBounds().getCenterLonLat().lat,clickMoveMarker.geometry.getBounds().getCenterLonLat().lon],icon:"DEFAULT",details:"Describe this place or person",name:"Edit Me"});
+	openEditor(myPoints.length-1,false);
+}
+var fullIconList=["http://sites.google.com/site/olpcau/home/Orangesmall.png","http://sites.google.com/site/olpcau/home/Greensmall1.png","http://sites.google.com/site/olpcau/home/Bluesmall.png","http://sites.google.com/site/olpcau/home/Pinksmall.png","http://mapmeld.appspot.com/xo-red.png","http://mapmeld.appspot.com/xo-brown.png","http://mapmeld.appspot.com/xo-yellow.png","http://google-maps-icons.googlecode.com/files/computer.png","http://google-maps-icons.googlecode.com/files/world.png","http://google-maps-icons.googlecode.com/files/industrialmuseum.png","http://google-maps-icons.googlecode.com/files/music-classical.png","http://google-maps-icons.googlecode.com/files/postal.png","http://google-maps-icons.googlecode.com/files/housesolarpanel.png","http://google-maps-icons.googlecode.com/files/park.png","http://google-maps-icons.googlecode.com/files/laboratory.png","http://google-maps-icons.googlecode.com/files/university.png","http://google-maps-icons.googlecode.com/files/daycare.png","http://google-maps-icons.googlecode.com/files/school.png","http://google-maps-icons.googlecode.com/files/bookstore.png","http://google-maps-icons.googlecode.com/files/workoffice.png","http://google-maps-icons.googlecode.com/files/photo.png","http://google-maps-icons.googlecode.com/files/bigcity.png","http://google-maps-icons.googlecode.com/files/places-unvisited.png","http://google-maps-icons.googlecode.com/files/amphitheater-tourism.png","http://google-maps-icons.googlecode.com/files/flowers.png","http://google-maps-icons.googlecode.com/files/waterwellpump.png","http://google-maps-icons.googlecode.com/files/pyramid-southam.png","http://google-maps-icons.googlecode.com/files/glacier.png","http://google-maps-icons.googlecode.com/files/places-visited.png","http://google-maps-icons.googlecode.com/files/pagoda.png","http://google-maps-icons.googlecode.com/files/forest.png","http://google-maps-icons.googlecode.com/files/fossils.png","http://google-maps-icons.googlecode.com/files/animals.png","http://google-maps-icons.googlecode.com/files/pens.png","http://google-maps-icons.googlecode.com/files/doctor.png","http://google-maps-icons.googlecode.com/files/firstaid.png","http://google-maps-icons.googlecode.com/files/home.png","http://google-maps-icons.googlecode.com/files/cluster.png","http://google-maps-icons.googlecode.com/files/regroup.png","http://google-maps-icons.googlecode.com/files/recycle.png","http://google-maps-icons.googlecode.com/files/wifi.png","http://google-maps-icons.googlecode.com/files/fireworks.png","http://google-maps-icons.googlecode.com/files/music-rock.png","http://google-maps-icons.googlecode.com/files/museum.png","http://google-maps-icons.googlecode.com/files/zoo.png","http://google-maps-icons.googlecode.com/files/expert.png","http://google-maps-icons.googlecode.com/files/communitycentre.png","http://mapmeld.appspot.com/library.png"];
+var fullIconString="<table><tr>";
+for(var fi=0;fi<fullIconList.length;fi++){
+	if(fi==0){
+		fullIconString+="<td><img src='"+fullIconList[fi]+"' onclick='changeIcon(-1)'/>";	
+	}
+	else{
+		if(fi%12==0){
+			fullIconString+="</tr><tr>";
+		}
+		fullIconString+="<td><img src='"+fullIconList[fi]+"' onclick='changeIcon("+fi+")'/>";
+	}
+}
+fullIconString+="</tr></table>";
+ 
+function editorPg(gotoPg){
+	$("editor-pg-"+(gotoPg-1)).style.display="none";
+	$("editor-pg-"+gotoPg).style.display="block";
+	$("editor-pg-button").onclick=function(event){ editorPg(gotoPg+1); }
+	if(gotoPg < 3){
+		$("editor-pg-button").innerHTML="> Photo >";
+	}
+	else{
+		$("editor-pg-button").style.display="none";
+	}
+}
+function changeIcon(){
+	var iconSelection="<table><tr>";
+	iconSelection+="<td><img src='"+ "" +"'/></td>";
+	iconSelection+="</tr></table>";
+	infoWindow.setContent(iconSelection);
+	infoWindow.open();
+}
+function changeIcon(num){
+	if(num){
+		if(num==-1){
+			$("editorIcon").value=fullIconList[0];		
+		}
+		else{
+			$("editorIcon").value=fullIconList[num];
+		}
+	}
+	else{
+		//icon select for user's default
+	}
+}
+function openEditor(mIndex,isNew){
+	isEditor=true;
+	var m = myPoints[mIndex];
+	var editorString="<div style='width:500px;height:370px;font-size:10pt;' width='500' height='450'>";
+	if(isNew){
+		editorString+="<div id='editor-pg-1' class='editPage'>Name<input id='editorTitle' style='width:70%;'/><hr/>";
+		editorString+="<textarea id='editorText' style='width:80%;height:120px;'>Describe this place or person</textarea><hr/>";
+		editorString+="Group name:<br/><input id='editorGroup' style='width:80%;height:18pt;'/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Select Icon<hr/><input id='editorIcon' style='width:70%;'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Best photo:<br/><input id='editorPhoto' style='width:70%;border:1px solid #000;'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Upload'/></div><hr/>Photo album link<br/><input id='editorAlbum' style='width:70%;'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Icon &amp; Photo &gt;</button>";
+		editorString+="<hr/><input type='button' value='Save Edits' onclick='saveEdits("+mIndex+");'/></div></div>";
+	}
+	else{
+		if(!myPoints[mIndex].photo){myPoints[mIndex].photo="";}
+		if(!myPoints[mIndex].album){myPoints[mIndex].album="";}
+		editorString+="<div id='editor-pg-1' class='editPage'>Name<input id='editorTitle' value='"+myPoints[mIndex].name+"' style='width:70%;'/><hr/>";
+		editorString+="<textarea id='editorText' style='width:80%;height:120px;'>"+myPoints[mIndex].details+"</textarea><hr/>";
+		editorString+="Group name:<br/><input id='editorGroup' style='width:80%;height:18pt;' value='"+myPoints[mIndex].group+"'/></div>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Select Icon<hr/><input id='editorIcon' style='width:70%;' value='"+myPoints[mIndex].icon+"'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Best photo:<br/><input id='editorPhoto' style='width:70%;' value='"+myPoints[mIndex].photo+"'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Upload'/></div><hr/>Photo album link<br/><input id='editorAlbum' style='width:70%;' value='"+myPoints[mIndex].album+"'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Icon &amp; Photo &gt;</button>";
+		editorString+="<hr/><input type='button' value='Save Edits' onclick='saveEdits("+mIndex+");'/></div></div>";
+	}
+	infoWindow.setContent(editorString);
+	infoWindow.open(map,m.marker);
+	//google.maps.event.addListener(infoWindow,'closeclick',function(){isEditor=false;ekey=null});
+}
+var ekey;
+function upupload(){
+	ekey=Math.random();
+	$('editorUpDiv').innerHTML="<iframe src='http://mapmeld.appspot.com/olpcMAPimg?frame=i&ekey="+ekey+"' style='border:none;height:70px;width:350px;' height='70' width='350'></iframe>";
+}
+function contactMode(){
+	$("coverwindow").style.display="block";
+}
+var sendPtIndex;
+function saveEdits(mIndex){
+	isEditor=false;
+	var isNew=false;
+	if(!myPoints[mIndex].id){
+		isNew=true;
+	}
+	myPoints[mIndex].name=$("editorTitle").value;
+	myPoints[mIndex].details=replaceEach($("editorText").value,"\\n","<br/>");
+	myPoints[mIndex].group=$("editorGroup").value;
+	myPoints[mIndex].photo=$("editorPhoto").value;
+	myPoints[mIndex].album=$("editorAlbum").value;
+	myPoints[mIndex].email=editorEmail;
+	if($("editorIcon").value != myPoints[mIndex].icon){
+		var newIconMarker;
+		if(myPoints[mIndex].marker){
+			var myIcon = new OpenLayers.Icon($("editorIcon").value,new OpenLayers.Size(30,30),new OpenLayers.Pixel(-15,-15));
+			newIconMarker=new OpenLayers.Marker(myPoints[mIndex].marker.geometry.getBounds().getCenterLonLat(),myIcon);
+			newMrkrs.addMarker(newIconMarker);
+			//title:myPoints[mIndex].name,
+			//draggable:isNew
+		}
+		else{
+			var myIcon = new OpenLayers.Icon($("editorIcon").value,new OpenLayers.Size(30,30),new OpenLayers.Pixel(-15,-15));
+			newIconMarker=new OpenLayers.Marker(new OpenLayers.LonLat(myPoints[mIndex].pt[1],myPoints[mIndex].pt[0]),myIcon);
+			newMrkrs.addMarker(newIconMarker);
+			//title:myPoints[mIndex].name,
+			//draggable:isNew
+		}
+		/* change icon of old marker
+		myPoints[mIndex].marker.setMap(null);
+		addInfo(newIconMarker,setupContent(mIndex));
+		myPoints[mIndex].marker=newIconMarker; */
+	}
+	/* update position when dragged
+	if(isNew){var reopenListener=google.maps.event.addListener(myPoints[mIndex].marker,'dragend',function(){updatePosition(mIndex)})} */
+	sendPtIndex = mIndex;
+	var sendPtScript=document.createElement("script");
+	sendPtScript.src="http://mapmeld.appspot.com/olpcMAP/makePoint?id=" + myPoints[mIndex].id + "&point=" + myPoints[mIndex].marker.geometry.getBounds().getCenterLonLat().lat + "," + myPoints[mIndex].marker.geometry.getBounds().getCenterLonLat().lon;
+	sendPtScript.src+="&name="+myPoints[mIndex].name+"&details="+myPoints[mIndex].details+"&group="+myPoints[mIndex].group+"&photo="+myPoints[mIndex].photo+"&album="+myPoints[mIndex].album + "&icon=" + myPoints[mIndex].icon + "&mail=" + myPoints[mIndex].email;
+	if(ekey){
+		sendPtScript.src+="&ekey="+ekey;
+	}
+	$("head").appendChild(sendPtScript);
+	infoWindow.close();
+	ekey=null;
+	addInfo(myPoints[mIndex].marker,setupContent(mIndex));
+}
+function updatePosition(mIndex){
+	var sendPtScript=document.createElement("script");
+	sendPtScript.src="http://mapmeld.appspot.com/olpcMAP/makePoint?id=" + myPoints[mIndex].id + "&point=" + myPoints[mIndex].marker.geometry.getBounds().getCenterLonLat().lat + "," + myPoints[mIndex].marker.geometry.getBounds().getCenterLonLat().lon;
+	sendPtScript.src+="&cmd=loc";
+	$("head").appendChild(sendPtScript);
+}
+function infoSlice(index,mIndex,tabid){
+	for(var n=0;n<6;n++){
+		var infoTab=$("infoWindow-"+n);
+		if(infoTab){
+			if(index==n){infoTab.style.display="block"}
+			else{infoTab.style.display="none"}
+		}
+	}
+	if(index==0){
+		var markerData = myPoints[mIndex];
+		$("infoWindow-0").innerHTML="Link to this point<br/><span style='font-size:10pt;'>http://olpcMAP.net?id=" + markerData.id + "</span><hr/>Link to nearby points:<br/><span style='font-size:10pt;'>http://olpcMAP.net?id="+markerData.id+"&km-distance=40</span><hr/>Share image of this zoom:<br/><span style='font-size:10pt'>http://olpcMAP.net?map=image&llregion="+map.getExtent().top.toFixed(4) + "," + map.getExtent().left.toFixed(4) + "," + map.getExtent().bottom.toFixed(4) + "," + map.getExtent().right.toFixed(4) + "</span>";
+	}
+	else if(index==1){
+		//contact form
+		if(myPoints[mIndex].id.indexOf(":") == -1){
+			$("infoWindow-contact").src="http://mapmeld.appspot.com/olpcMAP/contacter?id=" + myPoints[mIndex].id;
+		}
+		else{
+			var myGroup = orgs[myPoints[mIndex].id.split(":")[1]];
+			if(myGroup.website){
+				$("infoWindow-contact").src="http://olpcMAP.net/contacter?web=" + myGroup.website;
+			}
+			else if(myGroup.name.indexOf("http") != -1){
+				$("infoWindow-contact").src="http://olpcMAP.net/contacter?web=" + myGroup.name;
+			}
+			else{
+				$("infoWindow-contact").src="http://olpcMAP.net/contacter?web="+escape("http://www.google.com/search?q="+myPoints[mIndex].name);
+			}
+		}
+	}
+	if(index > 2){
+		$("infoFrame-"+index).src="http://mapmeld.appspot.com/olpcMAP/getTab?tid=" + tabid;
+	}
+}
+function replaceEach(src,older,newer){
+	while(src.indexOf(older)!=-1){
+		src=src.replace(older,newer);
+	}
+	return src;
+}
+function linkify(unlinkedTxt){
+	unlinkedTxt=replaceEach(unlinkedTxt,"link:","link;");
+	unlinkedTxt=replaceEach(unlinkedTxt,"link;"," link:");	
+	while(unlinkedTxt.indexOf("link:") != -1){
+		linkUrl=unlinkedTxt.substring(unlinkedTxt.indexOf("link:")+5,unlinkedTxt.length);
+		linkAfter='';
+		if(linkUrl.indexOf("http")==-1){
+			linkUrl="http://"+linkUrl;
+		}
+		if(linkUrl.indexOf(" ")!=-1){
+			linkUrl=linkUrl.substring(0,linkUrl.indexOf(" "));
+			linkAfter=unlinkedTxt.substring(unlinkedTxt.indexOf("link:")+5+linkUrl.length);
+		}
+		unlinkedTxt=unlinkedTxt.substring(0,unlinkedTxt.indexOf("link:")) + "<a target='_blank' href='" + linkUrl + "'>" + linkUrl + "</a>" + linkAfter;
+	}
+	return unlinkedTxt;
+}
+function setupContent(mIndex){
+	var markerData = myPoints[mIndex];
+	var contentString;
+	contentString="<h4 style='font-size:11pt;'><a class='tab-select' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:14pt;'>"+markerData.name+"</a>";
+	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Bookmarks</a>";
+	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contact</a>";
+	var titles="";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			if(titles.indexOf(markerData.tabs[mt].split("|")[0]+"|")==-1){
+				contentString+="<a class='tab' onclick='infoSlice("+(mt*1+3)+","+mIndex+","+markerData.tabs[mt].split("|")[1]+")' href='#'>"+markerData.tabs[mt].split("|")[0]+"</a>";
+				titles+=markerData.tabs[mt].split("|")[0]+"|";
+			}
+		}
+	}
+	contentString+="<a class='tab' href='#' onclick='openEditor("+mIndex+",false)'>Edit</a></h4>";
+	//contentString+="<img src='http://mapmeld.appspot.com/plusIcon.gif' style='vertical-align:middle;margin-left:3px;' onclick='addTab("+mIndex+")'/>";
+	contentString+="<div id='infoWindow-2' style='min-height:180px;'><table><tr>";
+	var width="250";
+	if(!markerData.photo){
+		width="450";
+	}
+	contentString += "<td style='font-size:8pt;' width='"+width+"'>";
+	if((markerData.group) && (markerData.group.length > 1)){
+		contentString += "<span style='font-weight:bold'>From "+markerData.group+"</span>";
+	}
+	contentString+="<hr/>";
+	if(markerData.details){contentString += linkify(markerData.details)}
+	else{contentString+="Please help us add details to this location"}
+	contentString+="</td>";
+	if(markerData.photo){
+		if(markerData.album){
+			contentString+="<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;' alt='BestPhoto'/><br/>View Photos</a></div></td>";		
+		}
+		else{
+			contentString+="<td><div id='mediadiv'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></div></td>";
+		}
+	}
+	else{
+		if(markerData.album){
+			contentString+="<td width='30pt'><a href='"+markerData.album+"' target='_blank'>View Photos</a></td>";
+		}
+		else{
+			contentString+="<td width='10'></td>";
+		}
+	}
+	contentString+="</tr></table></div>";
+	contentString+="<div id='infoWindow-0' style='display:none;min-height:180px;'></div>";
+	contentString+="<div id='infoWindow-1' style='display:none;min-height:180px;'><iframe id='infoWindow-contact' src='' style='border:none;' height='300' width='400'></iframe></div>";
+	if(markerData.tabs){
+		for(var mt=0;mt<markerData.tabs.length;mt++){
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'></div>";
+			contentString+="<div id='infoWindow-"+(mt*1+3)+"' style='display:none;min-height:180px;'><iframe id='infoFrame-"+(mt*1+3)+"' src='' style='border:none;' height='300' width='400'></iframe></div>";
+		}
+	}
+	return contentString;
+}
+var openMarkerForTab;
+function addTab(mIndex){
+	openMarkerForTab=mIndex;
+	myPoints[mIndex].tabs.push("Technical|new");
+	var addTbScript=document.createElement("script");
+	addTbScript.src="http://mapmeld.appspot.com/olpcMAP/addTab?id="+myPoints[mIndex].id+"&tid=new&type=Technical&content=";
+	$("head").appendChild(addTbScript);
+}
+function closeCoverWindow(){$("coverwindow").style.display="none"}
+function $(id){return document.getElementById(id);}
+	</script> 
+	<style type='text/css'> 
+html{width:100%;height:100%;}
+body{width:100%;height:100%;margin:0px;padding:0px;background-color:white;}
+input{color:#000;}
+h3{
+	margin-bottom:0.5em;
+}
+button{
+	vertical-align:middle;
+	font-family:Arial,sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	padding:4px;
+	color:#000000;
+}
+div.main{
+	background-color:#DDDAA0;
+}
+span.navoption{
+	color:#000000;
+	text-decoration:none;
+}
+span.navoption a{
+	color:#000000;
+	text-decoration:none;
+}
+span.navoption:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+span.navoption a:hover{
+	color:#0000bb;
+	text-decoration:underline;
+}
+a.tab{
+	font-size:11pt;
+	margin-left:8px;
+	margin-right:8px;
+	font-weight:normal;
+}
+a.tab-select{
+	text-decoration:none;
+	color:#500;
+	font-weight:bold;
+	margin-left:8px;
+	margin-right:8px;
+}
+div.searchCat{
+	background-color:darkblue;
+	color:white;
+	font-weight:bold;
+	padding:5px;
+}
+ul.searchList li{
+	font-family:Arial,sans-serif;
+	font-size:14px;
+	border-bottom:1px solid black;
+	cursor:pointer;
+	padding:6px;
+	list-style-type:none;
+	margin-left:-10px;
+	background-color:#aaaaff;
+}
+ul.searchList li:hover{
+	background-color:blue;
+	color:white;
+}
+span.topResult{
+	font-size:11pt;
+	background-color:darkblue;
+	color:white;
+}
+li.prof{
+	font-family:Arial,sans-serif;
+	font-size:14px;
+	border-bottom:1px solid black;
+	cursor:pointer;
+	padding:6px;
+	list-style-type:none;
+	margin-left:-10px;
+	background-color:#aaaaff;
+}
+li.prof:hover{
+	background-color:blue;
+	color:white;
+}
+label{
+	width:100%;
+	margin-top:10px;
+}
+div.sBar{
+  margin-top:-20px;
+  -moz-box-shadow: 15px 15px 15px #ccc;
+  -webkit-box-shadow: 15px 15px 15px #ccc;
+  box-shadow: 15px 15px 15px #ccc;
+}
+	</style>
+	<!--[if IE 6]><style type="text/css">li.prof{margin-left:0px;}</style><![endif]-->
+	<!--[if IE 7]><style type="text/css">li.prof{margin-left:0px;}</style><![endif]-->
+</head>
+	</style> 
+</head> 
+<body onload="init();"> 
+	<div class="header">
+		<h3><span style='font-size:1.7em;min-height:16pt;'>olpcMAP</span> - a geosocial network for Sugar and the XO <a href="http://www.facebook.com/pages/OlpcMAP/126840500716047" style="margin-left:8px;" target="_blank"><img src="http://facebook.com/favicon.ico" alt="Facebook Page" title="Facebook Page" style="height:16pt;"/></a><a href="http://twitter.com/olpcmap" style="margin-left:8px;" target="_blank"><img src="http://twitter.com/favicon.ico" title="Twitter Feed" alt="Twitter Feed" style="height:16pt;"/></a></h3>
+		<noscript><h3>Enable JavaScript to view olpcMAP</h3></noscript>
+		<br/>
+	</div>
+	<div class="nav">
+		<span class="navoption"><a href="#" onclick="joinNetworkMode();">Join the Map Network</a></span>
+		<span class="navoption"><a href="http://olpcMAP.net/home" target="_blank">Homepage</a></span>
+		<span class="navoption"><a href="http://wiki.laptop.org/" target="_blank">Laptop Help</a></span>
+		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">About Map</a></span>
+		<span class="navoption"><a href="#" onclick="contactMode()">Contact</a></span>
+	</div>
+	<table style="width:100%;height:100%;"><tr style="width:100%;height:100%;vertical-align:top;">
+		<td width="220" style="width:220px;">
+			<div id="sidebar" class="sBar" style="width:225px;border-right:1px solid blue;margin-right:-6px;margin-top:10px;background-color:white;">
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Projects</label><br/><br/>
+				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Media Map</label>
+				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>News &amp; Updates</label>-->
+				<hr/>
+				<div style="background-color:white;padding:3px;padding-bottom:0px;cursor:pointer;text-align:center;max-width:250px;">
+					<input id="searchbox" type="text" style="min-width:200px;width:200px;font-family:Arial,sans-serif;font-size:12pt;border:1px solid blue;" size="10" onkeypress="keyGoes(event);"/>
+					<br/>
+					<button onclick="searchSearchBox();" style="font-size:12pt;">
+						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
+						<span style="vertical-align:middle;">Find</span>
+					</button>\n				</div>\n				<ul id="searchResBox" style="margin-left:-30px;">\n''')
+		if results is not None:
+			topCount = 0
+			for pt in results:
+				myIcon = ''
+				myIcon = myIcon + cgi.escape(pt.icon).replace('https','http').replace('DEFAULT','http://chart.apis.google.com/chart?chst=d_map_pin_icon&amp;chld=location%7CFF0000')
+				if len(myIcon) < 3:
+					myIcon = cgi.escape(pt.photo)
+				if len(myIcon) < 3:
+					continue
+				myName = cgi.escape(pt.name)
+				if(myName.find("privatized") != -1):
+					fixname = myName.replace("privatized:","")
+					sndNames = 0
+					outname = ""
+					for letter in fixname:
+						if(sndNames == 0):
+							outname = outname + letter
+						elif(sndNames == -1):
+							outname = outname + letter
+							sndNames = 1
+						if(letter == " "):
+							sndNames = -1
+							outname = outname + " "
+					myName = outname
+				if(len(myName) >= 25):
+					myName = myName[0:25]+"..."
+				myDetails = cgi.escape(pt.details[0:30])
+				if(len(pt.details) >= 45):
+					myDetails = myDetails + "..."
+				if(myDetails.find('&lt;') == -1):
+					myDetails = '<br/><span style="font-size:8pt;">'+myDetails+'</span>'
+				else:
+					myDetails = '<br/><span style="font-size:8pt;">'+myDetails[0:myDetails.find('&lt;')]+'...</span>'
+				self.response.out.write('					<li id="li-' + str(pt.key().id()) + '" class="prof" onmouseover="bounce(\'' + str(pt.key().id()) + '\')" onmouseout="unbounce(\'' + str(pt.key().id()) + '\')" onclick="searchAccept(\'myPoint ' + str(pt.key().id()) + '\')"><img src="' + myIcon + '" style="max-width:20px;max-height:20px;vertical-align:top;float:left;position:float;"/><span style="vertical-align:middle;font-size:10pt;">' + myName + '</span>' + myDetails + '</li>\n')
+				topCount = topCount + 1
+				if(topCount >= 10):
+					break
+		else:
+			self.response.out.write('''					<li class="prof">
+						<img src="http://google-maps-icons.googlecode.com/files/red00.png" style="max-width:20px;max-height:20px;"/><span>Sample Result</span>
+					</li>
+					<li class="prof">
+						<img src="http://google-maps-icons.googlecode.com/files/red01.png" style="max-width:20px;max-height:20px;"/><span>Sample Result</span>
+					</li>
+					<li class="prof">
+						<img src="http://google-maps-icons.googlecode.com/files/red02.png" style="max-width:20px;max-height:20px;"/><span>Sample Result</span>
+					</li>\n''')
+		self.response.out.write('''				</ul>
+			</div>
+		</td><td style="height:100%;width:100%;">
+			<div id="map" style="width:820px;height:650px;"></div>
+		</td></tr></table>
+		<div class="main">The goal of olpcMAP is to learn more about where education technology is in play - around the world and in our own neighborhoods. 
+
+That means we would like to hear stories from you! Joining the network makes it easier for you to connect with technology projects near you,and makes it possible for experienced and enthusiastic volunteers to find your project and give their support. 
+
+We are interested in opening up the network design process to embrace various strategies toward recruiting volunteers and sharing successes,trials,and tribulations of existing deployments.</div>
+		<div id="coverwindow" style="display:none;position:fixed;margin-left:auto;margin-right:auto;top:100px;border:1px solid black;font-size:16pt;text-align:right;background-color:#333333;">
+		<input type="button" value="X" style="border:1px solid black;color:black;font-size:16pt;" onclick="closeCoverWindow();"/>
+		<br/>
+		<form id="signinform" style="width:100%;background-color:#ffffff; text-align:left; font-size:13pt;" action="http://mapmeld.appspot.com/olpcMAP/contact?id=you" method="POST">
+			E-mail <input id="emaillogin" name="login"/><br/>
+			Message<br/>
+			<textarea name="message" width="550" height="300"></textarea>
+			<input type="submit" style="width:50%;text-align:center;margin-left:auto;margin-right:auto;" value="Send"/>
+		</form>
+	</div>
+</body>
+</html>''')
+
 class Home(webapp.RequestHandler):
 	def get(self):
 		url = ''
 		uid = ""
 		lang = "en"
+		jam = "no"
 		if(self.request.url.find('/es') != -1):
 			lang = "es"
+		if(self.request.url.find('/jam') != -1):
+			if(self.request.url.find('/jamadjust') != -1):
+				mapPt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+				if mapPt is not None:
+					if mapPt.connections == "jam":
+						mapPt.connections = ""
+					else:
+						mapPt.connections = "jam"
+					mapPt.put()
+					return
+			jam = "yes"
 		#if not facebookapi.check_connect_session(self.request):
 		#	uid="no check connect"
 		#else:
@@ -32,8 +1638,9 @@ class Home(webapp.RequestHandler):
 	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 	<link rel='stylesheet' type='text/css' href='http://mapmeld.appspot.com/mapmeldStyles.css'/>
 	<script type='text/javascript'>
-var map,countries,people,orgs,infoWindow,geocoder,myPoints,specialRegion,isEditor,lastSText,approxd,clusters,defSize;
+var map,countries,people,orgs,infoWindow,geocoder,myPoints,specialRegion,isEditor,lastSText,approxd,clusters,defSize,jammers;
 function init(){
+	jammers=[];
 	joinNetwork=true;
 	var myOptions = {
 		zoom:2,
@@ -779,6 +2386,12 @@ img.zoom:hover{border:1px solid #000}
 </body></html>''')
 			return
 		else:
+			if(jam == 'yes'):
+				jammers = GeoRefUsermadeMapPoint.gql("WHERE connections = :1 LIMIT 200", "jam")
+				self.response.out.write('	jammers=[359001')
+				for jammer in jammers:
+					self.response.out.write(','+str(jammer.key().id()))
+				self.response.out.write('];\n')
 			self.response.out.write('''	infoWindow = new google.maps.InfoWindow();
 	google.maps.event.addListener(map,'click',function(){if(!isEditor){infoWindow.close()}});
 	for(var myPt=0;myPt<myPoints.length;myPt++){
@@ -868,6 +2481,26 @@ img.zoom:hover{border:1px solid #000}
 		}
 	}
 	geocoder = new google.maps.Geocoder();\n''')
+		if(jam == "yes"):
+			self.response.out.write('''	var confPoint = new google.maps.LatLng(-34.907895,-56.207857);
+	for(var j=0;j<jammers.length;j++){
+		for(var mPt=0;mPt<myPoints.length;mPt++){
+			if(myPoints[mPt].id==jammers[j]){
+				var jamPoints = [
+					confPoint,
+					new google.maps.LatLng(myPoints[mPt].pt[0],myPoints[mPt].pt[1])
+				];
+				var path = new google.maps.Polyline({
+					path: jamPoints,
+					strokeColor: "#992244",
+					strokeOpacity: 0.5,
+					strokeWeight: 3
+				});
+				path.setMap(map);
+				break;
+			}
+		}
+	}\n''')
 		if(self.request.get('view') == 'alt'):
 			self.response.out.write('''	var controlDiv = document.createElement('div');
 	controlDiv.style.padding = '5px';
@@ -943,6 +2576,10 @@ img.zoom:hover{border:1px solid #000}
 		$("newsCheck").checked=false;
 	}
 	catch(e){}
+	try{
+		$("jamCheck").checked=true;
+	}
+	catch(e){}
 }
 var newsLayer,mediaMap;
 function toggle(cBox){
@@ -980,6 +2617,25 @@ function toggle(cBox){
 		case "volCheck":
 			for(var i=0;i<myPoints.length;i++){
 				if((myPoints[i].icon.indexOf("xo-")!=-1)||(myPoints[i].icon.indexOf("/olpcau/")!=-1)){
+					if(cBox.checked){
+						myPoints[i].marker.setMap(map);
+					}
+					else{
+						myPoints[i].marker.setMap(null);				
+					}
+				}
+			}
+			break;
+		case "jamCheck":
+			for(var i=0;i<myPoints.length;i++){
+				var foundJam=false;
+				for(var j=0;j<jammers.length;j++){
+					if(jammers[j] == myPoints[i].id){
+						foundJam=true;
+						break;
+					}
+				}
+				if(!foundJam){
 					if(cBox.checked){
 						myPoints[i].marker.setMap(map);
 					}
@@ -1534,6 +3190,49 @@ function changeIcon(num){
 		$("editorIcon").value=fullIconList[num];
 	}
 }\n''')
+		if(jam == "yes"):
+			self.response.out.write('''function jam(id){
+	for(var j=0;j<jammers.length;j++){
+		if(jammers[j] == id){
+			//drop jam
+			var jamScript=document.createElement('script');
+			jamScript.src="http://mapmeld.appspot.com/olpcMAPolpc/jamadjust?id=" +id;
+			jamScript.type="text/javascript";
+			document.body.appendChild(jamScript);
+			infoWindow.close();
+			if(myPoints[mPt].path){
+				myPoints[mPt].path.setMap(null);
+				myPoints[mPt].path=null;
+			}
+			return;
+		}
+		// join jam
+		var jamScript=document.createElement('script');
+		jamScript.src="http://mapmeld.appspot.com/olpcMAPolpc/jamadjust?id=" +id;
+		jamScript.type="text/javascript";
+		document.body.appendChild(jamScript);
+		jammers.push(id);
+		for(var mPt=0;mPt<myPoints.length;mPt++){
+			if(myPoints[mPt].id==id){
+				var jamPoints = [
+					new google.maps.LatLng(-34.907895,-56.207857),
+					new google.maps.LatLng(myPoints[mPt].pt[0],myPoints[mPt].pt[1])
+				];
+				myPoints[mPt].path = new google.maps.Polyline({
+					path: jamPoints,
+					strokeColor: "#FF0000",
+					strokeOpacity: 0.5,
+					strokeWeight: 2
+				});
+				myPoints[mPt].path.setMap(map);
+				infoWindow.close();
+				infoWindow.setContent(setupContent(mPt));
+				infoWindow.open(map,myPoints[mPt].marker);
+				return;
+			}
+		}
+	}
+}\n''')
 		if(lang=="es"):
 			self.response.out.write('''function openEditor(mIndex,isNew){
 	isEditor=true;
@@ -1543,9 +3242,9 @@ function changeIcon(num){
 		editorString+="<div id='editor-pg-1' class='editPage'>Nombre<input id='editorTitle' style='width:70%;'/><hr/>";
 		editorString+="<textarea id='editorText' style='width:80%;height:120px;'>Describir el lugar o la persona</textarea><hr/>";
 		editorString+="Nombre del grupo:<br/><input id='editorGroup' style='width:80%;height:18pt;'/></div>";
-		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar Imagen<hr/><input id='editorIcon' style='width:70%;'/><br/>"+fullIconString+"</div>";
-		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;border:1px solid #000;'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Link al Album<br/><input id='editorAlbum' style='width:70%;'/></div><div style='display:none;'></div>";
-		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Imagen y Foto &gt;</button>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar S&iacute;mbolo<hr/><input id='editorIcon' style='width:70%;'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;border:1px solid #000;'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Album de Fotos<br/><input id='editorAlbum' style='width:70%;'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; S&iacute;mbolo y Foto &gt;</button>";
 		editorString+="<hr/><input type='button' value='Guardar' onclick='saveEdits("+mIndex+");'/></div></div>";
 	}
 	else{
@@ -1554,9 +3253,9 @@ function changeIcon(num){
 		editorString+="<div id='editor-pg-1' class='editPage'><a href='http://olpcMAP.net/resetpoint?id="+myPoints[mIndex].id+"' target='_blank'>Cambiar el Nombre o Ubicacion</a><hr/>";
 		editorString+="<textarea id='editorText' style='width:90%;height:150px;'>"+replaceEach(myPoints[mIndex].details,'<br>','\\n')+"</textarea><hr/>";
 		editorString+="Nombre del Grupo:<br/><input id='editorGroup' style='width:80%;height:18pt;' value=\\""+replaceEach(myPoints[mIndex].group,'"',"'")+"\\"/></div>";
-		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar Imagen<hr/><input id='editorIcon' style='width:70%;' value='"+myPoints[mIndex].icon+"'/><br/>"+fullIconString+"</div>";
-		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;' value='"+myPoints[mIndex].photo+"'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Link al Album<br/><input id='editorAlbum' style='width:70%;' value='"+myPoints[mIndex].album+"'/></div><div style='display:none;'></div>";
-		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; Imagen y Foto &gt;</button>";
+		editorString+="<div id='editor-pg-2' class='editPage' style='display:none;'>Seleccionar S&iacute;mbolo<hr/><input id='editorIcon' style='width:70%;' value='"+myPoints[mIndex].icon+"'/><br/>"+fullIconString+"</div>";
+		editorString+="<div id='editor-pg-3' class='editPage' style='display:none;max-height:350px;'>Foto Mejor:<br/><input id='editorPhoto' style='width:70%;' value='"+myPoints[mIndex].photo+"'/><br/><div id='editorUpDiv'><input type='button' onclick='upupload()' value='Subir'/></div><hr/>Album de Photos<br/><input id='editorAlbum' style='width:70%;' value='"+myPoints[mIndex].album+"'/></div><div style='display:none;'></div>";
+		editorString+="<button id='editor-pg-button' type='button' onclick='editorPg(2)'>&gt; S&iacute;mbolo y Foto &gt;</button>";
 		editorString+="<hr/><input type='button' value='Guardar' onclick='saveEdits("+mIndex+");'/></div></div>";
 	}
 	infoWindow.setContent(editorString);
@@ -1727,8 +3426,20 @@ function linkify(unlinkedTxt){
 	var markerData = myPoints[mIndex];
 	var contentString;
 	contentString="<h4 style='font-size:11pt;'><a class='tab-select' mid='"+markerData.id+"' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:12pt;'>"+markerData.name+"</a>";
-	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Marcadores</a>";
-	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contacto</a>";
+	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Marcadores</a>";\n''')
+			if(jam=="yes"):
+				self.response.out.write('''	var foundJam=false;
+	for(var j=0;j<jammers.length;j++){
+		if(jammers[j] == markerData.id){
+			contentString+="<a class='tab' onclick='jam("+markerData.id+")' href='#'>En Jam</a>";
+			foundJam=true;
+			break;
+		}
+	}
+	if(!foundJam){
+		contentString+="<a class='tab' onclick='jam("+markerData.id+")' href='#'>Registrarse con Jam</a>";
+	}\n''')
+			self.response.out.write('''	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contacto</a>";
 	var titles="";
 	if(markerData.tabs){
 		for(var mt=0;mt<markerData.tabs.length;mt++){
@@ -1747,15 +3458,16 @@ function linkify(unlinkedTxt){
 	}
 	contentString += "<td style='font-size:8pt;' width='"+width+"'>";
 	if((markerData.group) && (markerData.group.length > 1)){
-		contentString += "<span style='font-weight:bold'>De "+linkify(markerData.group)+"</span>";
+		contentString += "<span style='font-weight:bold'>de "+linkify(markerData.group)+"</span>";
 	}
 	contentString+="<hr/>";
 	if(markerData.details){contentString += linkify(markerData.details)}
-	else{contentString+="Por favor, ayudanos con los detalles"}
+	else{contentString+="Por favor, escribir m&aacute;s informaci&oacute;n"}
+	contentString+="<br/><a href='http://translate.google.com/#auto|es|"+markerData.details+"' target='_blank'>Tranduccir</a>";
 	contentString+="</td>";
 	if(markerData.photo){
 		if(markerData.album){
-			contentString+="<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;' alt='BestPhoto'/><br/>Ver Las Fotos</a></div></td>";		
+			contentString+="<td><div id='mediadiv'><a href='"+markerData.album+"' target='_blank'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;' alt='BestPhoto'/><br/>Album de Fotos</a></div></td>";
 		}
 		else{
 			contentString+="<td><div id='mediadiv'><img src='"+markerData.photo+"' style='max-height:150px;max-width:260px;'/></div></td>";
@@ -1763,7 +3475,7 @@ function linkify(unlinkedTxt){
 	}
 	else{
 		if(markerData.album){
-			contentString+="<td width='30pt'><a href='"+markerData.album+"' target='_blank'>Ver Las Fotos</a></td>";
+			contentString+="<td width='30pt'><a href='"+markerData.album+"' target='_blank'>Album de Fotos</a></td>";
 		}
 		else{
 			contentString+="<td width='10'></td>";
@@ -1785,8 +3497,20 @@ function linkify(unlinkedTxt){
 	var markerData = myPoints[mIndex];
 	var contentString;
 	contentString="<h4 style='font-size:11pt;'><a class='tab-select' mid='"+markerData.id+"' href='#' onclick='infoSlice(2,"+mIndex+",0)' style='font-size:12pt;'>"+markerData.name+"</a>";
-	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Bookmarks</a>";
-	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contact</a>";
+	contentString+="<a class='tab' onclick='infoSlice(0,"+mIndex+",0)' href='#'>Bookmarks</a>";\n''')
+			if(jam=="yes"):
+				self.response.out.write('''	var foundJam=false;
+	for(var j=0;j<jammers.length;j++){
+		if(jammers[j] == markerData.id){
+			contentString+="<a class='tab' onclick='jam("+markerData.id+")' href='#'>At Jam</a>";
+			foundJam=true;
+			break;
+		}
+	}
+	if(!foundJam){
+		contentString+="<a class='tab' onclick='jam("+markerData.id+")' href='#'>Join Jam</a>";
+	}\n''')
+			self.response.out.write('''	contentString+="<a class='tab' onclick='infoSlice(1,"+mIndex+",0)' href='#'>Contact</a>";
 	var titles="";
 	if(markerData.tabs){
 		for(var mt=0;mt<markerData.tabs.length;mt++){
@@ -1990,12 +3714,12 @@ div.sBar{
 <body onload="init();">\n''')
 		if(lang=="es"):
 			self.response.out.write('''	<div class="header">
-		<h3><span style='font-size:1.7em;min-height:16pt;'>olpcMAP</span> - un red geografico por Sugar y la XO <a href="http://www.facebook.com/pages/OlpcMAP/126840500716047" style="margin-left:8px;" target="_blank"><img src="http://facebook.com/favicon.ico" alt="Facebook Page" title="Facebook Page" style="height:16pt;"/></a><a href="http://twitter.com/olpcmap" style="margin-left:8px;" target="_blank"><img src="http://twitter.com/favicon.ico" title="Twitter Feed" alt="Twitter Feed" style="height:16pt;"/></a></h3>
+		<h3><span style='font-size:1.7em;min-height:16pt;'>olpcMAP</span> - un red geogr&aacute;fico de Sugar y la XO <a href="http://www.facebook.com/pages/OlpcMAP/126840500716047" style="margin-left:8px;" target="_blank"><img src="http://facebook.com/favicon.ico" alt="Facebook Page" title="Facebook Page" style="height:16pt;"/></a><a href="http://twitter.com/olpcmap" style="margin-left:8px;" target="_blank"><img src="http://twitter.com/favicon.ico" title="Twitter Feed" alt="Twitter Feed" style="height:16pt;"/></a></h3>
 		<noscript><h3>Enable JavaScript to view olpcMAP</h3></noscript>
 		<br/>
 	</div>
 	<div class="nav"> 
-		<span class="navoption"><a href="#" onclick="joinNetworkMode();">Usted y el Mapa</a></span> 
+		<span class="navoption"><a href="#" onclick="joinNetworkMode();">Ingresar al Mapa</a></span> 
 		<span class="navoption"><a href="http://olpcMAP.net/home" target="_blank">Inicio</a></span> 
 		<span class="navoption"><a href="http://wiki.laptop.org/" target="_blank">Ayuda con XO</a></span> 
 		<span class="navoption"><a href="http://wiki.laptop.org/go/OlpcMAP" target="_blank">Sobre Nos.</a></span> 
@@ -2018,8 +3742,35 @@ div.sBar{
 			self.response.out.write('''	<table style="width:100%;height:100%;"><tr style="width:100%;height:100%;vertical-align:top;">
 		<td width="220" style="width:220px;">
 			<div id="sidebar" class="sBar" style="width:225px;border-right:1px solid blue;margin-right:-6px;margin-top:10px;background-color:white;">\n''')
-			if(lang=="es"):
-				self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Voluntarios</label><br/><br/>
+			if(jam=="yes"):
+				if(lang=="es"):
+					self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="jamCheck" type="checkbox" onclick="toggle(this)" checked/>Afuera del Jam</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Voluntarios</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Proyectos</label><br/><br/>
+				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>Noticias</label>-->
+				<hr/>
+				<div style="background-color:white;padding:3px;padding-bottom:0px;cursor:pointer;text-align:center;max-width:250px;">
+					<input id="searchbox" type="text" style="min-width:200px;width:200px;font-family:Arial,sans-serif;font-size:12pt;border:1px solid blue;" size="10" onkeypress="keyGoes(event);"/>
+					<br/>
+					<button onclick="searchSearchBox();" style="font-size:12pt;">
+						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
+						<span style="vertical-align:middle;">Buscar</span>\n''')
+				else:
+					self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="jamCheck" type="checkbox" onclick="toggle(this)" checked/>Outside Jam</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
+				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Projects</label><br/><br/>
+				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Media Map</label>
+				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>News &amp; Updates</label>-->
+				<hr/>
+				<div style="background-color:white;padding:3px;padding-bottom:0px;cursor:pointer;text-align:center;max-width:250px;">
+					<input id="searchbox" type="text" style="min-width:200px;width:200px;font-family:Arial,sans-serif;font-size:12pt;border:1px solid blue;" size="10" onkeypress="keyGoes(event);"/>
+					<br/>
+					<button onclick="searchSearchBox();" style="font-size:12pt;">
+						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
+						<span style="vertical-align:middle;">Find</span>\n''')			
+			else:
+				if(lang=="es"):
+					self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Voluntarios</label><br/><br/>
 				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Proyectos</label><br/><br/>
 				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Mapa de Fotos</label>
 				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>Noticias</label>-->
@@ -2029,9 +3780,9 @@ div.sBar{
 					<br/>
 					<button onclick="searchSearchBox();" style="font-size:12pt;">
 						<img src="https://sites.google.com/site/olpcau/home/Bluesmall.png" style="vertical-align:middle;height:10pt;width:10pt;"/>
-						<span style="vertical-align:middle;">Buscar</span>\n''')			
-			else:
-				self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
+						<span style="vertical-align:middle;">Buscar</span>\n''')
+				else:
+					self.response.out.write('''				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="volCheck" type="checkbox" onclick="toggle(this)" checked/>Volunteers</label><br/><br/>
 				<label style="border-bottom:1px solid silver;padding:4px;width:210px;"><input id="projCheck" type="checkbox" onclick="toggle(this)" checked/>Projects</label><br/><br/>
 				<label style="padding:4px;width:210px;"><input id="photoCheck" type="checkbox" onclick="toggle(this)"/>Media Map</label>
 				<!--<label style="padding:4px;width:210px;"><input id="newsCheck" type="checkbox" onclick="toggle(this)"/>News &amp; Updates</label>-->
@@ -4194,15 +5945,16 @@ class GeoNewsItem(SearchLink,GeoModel):
   longitude = property(_get_longitude, _set_longitude)
 
 class GeoRefUsermadeMapPoint(GeoRefMapPoint):
-	username = db.StringProperty()
+	username = db.StringProperty(multiline=False)
+	connections = db.StringProperty(multiline=False)
 
 class PhotoUpload(db.Model):
 	photo = db.BlobProperty()
-	redirectUrl = db.StringProperty()
+	redirectUrl = db.StringProperty(multiline=False)
 	ekey = db.StringProperty(multiline=False)
 
 class PointTab(db.Model):
-	title = db.StringProperty()
+	title = db.StringProperty(multiline=False)
 	vars = db.StringListProperty()
 	values = db.StringListProperty()
 
@@ -4228,6 +5980,7 @@ application = webapp.WSGIApplication([('/olpcMAP/makePoint.*',MakePoint),
 				('/olpcMAP/newest.*',Newest),
 				('/olpcMAPolpc/resetpoint.*',ResetPoint),
 				('/olpcMAPolpc/confirm.*',EmailConfirming),
+				('/olpcMAPolpc/open.*', OpenMap),
 				('/olpcMAP.*',Home)],
 				debug=True)
 
