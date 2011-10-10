@@ -1,10 +1,13 @@
 import cgi,logging,random
 
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine.ext import db
+#from google.appengine.ext import webapp
+#from google.appengine.ext.webapp.util import run_wsgi_app
+
+#from google.appengine.ext import db
+
 from google.appengine.api import memcache,users,mail
 from google.appengine.api.urlfetch import fetch,GET,POST
+
 from datetime import datetime
 from geomodel import GeoModel
 import geotypes
@@ -204,21 +207,14 @@ function init(){
 				ctr_lat = self.request.get('llcenter').replace('%20','').split(',')[0]
 				ctr_lng = self.request.get('llcenter').replace('&20','').split(',')[1]
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-					GeoRefUsermadeMapPoint.all(),
-					geotypes.Point(float(ctr_lat),float(ctr_lng)),
-					max_results=100,
-					max_distance=1000 * radius)
+				# MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
-					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
-						GeoRefMapPoint.all(),
-						geotypes.Point(float(ctr_lat),float(ctr_lng)),
-						max_results=100,
-						max_distance=1000 * radius
-					)
+					# MongoDB
+					hiddenGeoResults = db.GeoRefMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
 				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
 					self.response.out.write('center=['+ ctr_lat + "," + ctr_lng + '];\nrad="'+str(radius)+'";\n')
 			elif(self.request.get('llregion') != ''):
@@ -227,20 +223,14 @@ function init(){
 				ne_lng = self.request.get('llregion').replace('%20','').split(',')[1]
 				sw_lat = self.request.get('llregion').replace('%20','').split(',')[2]
 				sw_lng = self.request.get('llregion').replace('%20','').split(',')[3]
-				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
-					GeoRefUsermadeMapPoint.all(),
-					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
-					max_results=100
-				)
+				# MongoDB - LL and UR
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { '$within' : { [[float(sw_lat), float(sw_lng)], [float(ne_lat), float(ne_lng)]] } } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
-					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
-						GeoRefMapPoint.all(),
-						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
-						max_results=100
-					)
+					# MongoDB
+					hiddenGeoResults = db.GeoRefMapPoint.find({ 'loc': { '$within' : { [[float(sw_lat), float(sw_lng)], [float(ne_lat), float(ne_lng)]] } } } ).limit(100)
 				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
 					self.response.out.write('center=['+ str((float(ne_lat)+float(sw_lat))/2) + "," + str((float(ne_lng)+float(sw_lng))/2) + '];box="' + ne_lat +"," + ne_lng + "," + sw_lat + "," + sw_lng + '";\n')
 
@@ -275,30 +265,19 @@ function init(){
 					if(sw_lng>maxlng):
 						maxlng=sw_lng
 					if(results is None):
-						results=GeoRefUsermadeMapPoint.bounding_box_fetch(
-							GeoRefUsermadeMapPoint.all(),
-							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
-							max_results=100
-						)					
+						# MongoDB
+						results = db.GeoRefUsermadeMapPoint.find({ 'loc': { '$within' : { [[sw_lat, sw_lng], [ne_lat, ne_lng]] } } } ).limit(100)
 					else:
-						results=results+GeoRefUsermadeMapPoint.bounding_box_fetch(
-							GeoRefUsermadeMapPoint.all(),
-							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
-							max_results=100
-						)
+						# MongoDB
+						results=results+db.GeoRefUsermadeMapPoint.find({ 'loc': { '$within' : { [[sw_lat, sw_lng], [ne_lat, ne_lng]] } } } ).limit(100)
+
 					if(self.request.get('map')=='image'):
 						if(hiddenGeoResults is None):
-							hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
-								GeoRefMapPoint.all(),
-								geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
-								max_results=100
-							)
+							# MongoDB
+							hiddenGeoResults = db.GeoRefMapPoint.find({ 'loc': { '$within' : { [[float(sw_lat), float(sw_lng)], [float(ne_lat), float(ne_lng)]] } } } ).limit(100)
 						else:
-							hiddenGeoResults = hiddenGeoResults + GeoRefMapPoint.bounding_box_fetch(
-								GeoRefMapPoint.all(),
-								geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
-								max_results=100
-							)
+							# MongoDB
+							hiddenGeoResults = hiddenGeoResults + db.GeoRefMapPoint.find({ 'loc': { '$within' : { [[float(sw_lat), float(sw_lng)], [float(ne_lat), float(ne_lng)]] } } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ str(minlat) +',' + str(minlng) + '),new google.maps.LatLng(' + str(maxlat) +',' + str(maxlng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
@@ -323,21 +302,15 @@ function init(){
 					ctr_lng = ctr_lng[0:ctr_lng.find('"')]
 					memcache.add("center:" + cgi.escape(self.request.get('center')),ctr_lat + "," + ctr_lng,500000)
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-						GeoRefUsermadeMapPoint.all(),
-						geotypes.Point(float(ctr_lat),float(ctr_lng)),
-						max_results=100,
-						max_distance=1000 * radius)
+				# MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
+
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
-					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
-						GeoRefMapPoint.all(),
-						geotypes.Point(float(ctr_lat),float(ctr_lng)),
-						max_results=100,
-						max_distance=1000 * radius
-					)
+						# MongoDB
+					hiddenGeoResults = db.GeoRefMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
 				elif((self.request.get('map') == 'quick') or (self.request.get('map') == 'fast')):
 					self.response.out.write('center=['+ ctr_lat + "," + ctr_lng + '];\nrad="'+str(radius)+'";')
 
@@ -366,6 +339,8 @@ function init(){
 					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 					sw_lng = sw_lng[0:sw_lng.find('"')]
 					memcache.add("region:" + cgi.escape(self.request.get('region')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+				# need MongoDB
+
 				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
 					GeoRefUsermadeMapPoint.all(),
 					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -375,6 +350,7 @@ function init(){
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+						# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -408,6 +384,7 @@ function init(){
 					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 					sw_lng = sw_lng[0:sw_lng.find('"')]
 					memcache.add("region:" + cgi.escape(self.request.get('go')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+				# need MongoDB
 				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
 					GeoRefUsermadeMapPoint.all(),
 					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -417,6 +394,7 @@ function init(){
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+						# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -427,17 +405,17 @@ function init(){
 
 			elif((self.request.get('km-distance') != '') and (self.request.get('id') != '')):
 				directGeo = 0
-				ctrPoint = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+				# MongoDB
+				ctrPoint = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id'))})
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-					GeoRefUsermadeMapPoint.all(),
-					geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
-					max_results=100,
-					max_distance=1000 * radius)
+				# MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctrPoint.location.lat),float(ctrPoint.location.lon)], '$maxDistance': 1000 * radius } } ).limit(100)
+	
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon) + '), radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon)
+					# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
@@ -461,7 +439,9 @@ function init(){
 			myResults = oldPoints + newPoints
 		if myResults is not None:
 			self.response.out.write(myResults)
-			mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			# MongoDB
+			mapPoints = db.GeoRefUsermadeMapPoint.find().sort({"lastUpdate":1})
+			# MongoDB
 			results = mapPoints.fetch(30)
 			resultOut = u''
 			for pt in results:
@@ -491,9 +471,11 @@ function init(){
 			mapPoints = None
 			#mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
 			if(results is None):
-				mapPoints = GeoRefUsermadeMapPoint.all()
+					# MongoDB
+				mapPoints = db.GeoRefUsermadeMapPoint.find()
 				if mapPoints is not None:
-					results = mapPoints.fetch(200)
+					# MongoDB
+					results = mapPoints.limit(200)
 		self.response.out.write('''	//point styles
 	var layer_style = OpenLayers.Util.extend({}, OpenLayers.Feature.Vector.style['default']);
 	layer_style.fillOpacity = 0.2;
@@ -1613,7 +1595,8 @@ class Home(webapp.RequestHandler):
 			lang = "es"
 		if(self.request.url.find('/jam') != -1):
 			if(self.request.url.find('/jamadjust') != -1):
-				mapPt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+					# MongoDB
+				mapPt = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id'))})
 				if mapPt is not None:
 					if mapPt.connections == "jam":
 						mapPt.connections = ""
@@ -1847,15 +1830,13 @@ function load(){
 				ctr_lat = self.request.get('llcenter').replace('%20','').split(',')[0]
 				ctr_lng = self.request.get('llcenter').replace('&20','').split(',')[1]
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-					GeoRefUsermadeMapPoint.all(),
-					geotypes.Point(float(ctr_lat),float(ctr_lng)),
-					max_results=100,
-					max_distance=1000 * radius)
+					# MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
+					# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -1870,6 +1851,7 @@ function load(){
 				ne_lng = self.request.get('llregion').replace('%20','').split(',')[1]
 				sw_lat = self.request.get('llregion').replace('%20','').split(',')[2]
 				sw_lng = self.request.get('llregion').replace('%20','').split(',')[3]
+					# need MongoDB
 				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
 					GeoRefUsermadeMapPoint.all(),
 					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -1879,6 +1861,7 @@ function load(){
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+					# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -1918,18 +1901,21 @@ function load(){
 					if(sw_lng>maxlng):
 						maxlng=sw_lng
 					if(results is None):
+					# need MongoDB
 						results=GeoRefUsermadeMapPoint.bounding_box_fetch(
 							GeoRefUsermadeMapPoint.all(),
 							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
 							max_results=100
 						)					
 					else:
+					# need MongoDB
 						results=results+GeoRefUsermadeMapPoint.bounding_box_fetch(
 							GeoRefUsermadeMapPoint.all(),
 							geotypes.Box(ne_lat,ne_lng,sw_lat,sw_lng),
 							max_results=100
 						)
 					if(self.request.get('map')=='image'):
+					# need MongoDB
 						if(hiddenGeoResults is None):
 							hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 								GeoRefMapPoint.all(),
@@ -1937,6 +1923,7 @@ function load(){
 								max_results=100
 							)
 						else:
+					# need MongoDB
 							hiddenGeoResults = hiddenGeoResults + GeoRefMapPoint.bounding_box_fetch(
 								GeoRefMapPoint.all(),
 								geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -1966,15 +1953,14 @@ function load(){
 					ctr_lng = ctr_lng[0:ctr_lng.find('"')]
 					memcache.add("center:" + cgi.escape(self.request.get('center')),ctr_lat + "," + ctr_lng,500000)
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-						GeoRefUsermadeMapPoint.all(),
-						geotypes.Point(float(ctr_lat),float(ctr_lng)),
-						max_results=100,
-						max_distance=1000 * radius)
+					# MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctr_lat),float(ctr_lng)], '$maxDistance': 1000 * radius } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ cgi.escape(ctr_lat) +',' + cgi.escape(ctr_lng) + '),radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + ctr_lat + "," + ctr_lng
+					# need MongoDB
+
 					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -2009,6 +1995,7 @@ function load(){
 					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 					sw_lng = sw_lng[0:sw_lng.find('"')]
 					memcache.add("region:" + cgi.escape(self.request.get('region')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+					# need MongoDB
 				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
 					GeoRefUsermadeMapPoint.all(),
 					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -2018,6 +2005,7 @@ function load(){
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+						# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -2051,6 +2039,7 @@ function load(){
 					sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 					sw_lng = sw_lng[0:sw_lng.find('"')]
 					memcache.add("region:" + cgi.escape(self.request.get('go')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+				# need MongoDB
 				results = GeoRefUsermadeMapPoint.bounding_box_fetch(
 					GeoRefUsermadeMapPoint.all(),
 					geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -2060,6 +2049,7 @@ function load(){
 					self.response.out.write('	var specialRegion=new google.maps.Rectangle({bounds:new google.maps.LatLngBounds(new google.maps.LatLng('+ cgi.escape(sw_lat) +',' + cgi.escape(sw_lng) + '),new google.maps.LatLng(' + cgi.escape(ne_lat) +',' + cgi.escape(ne_lng) + '))});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&visible=" + ne_lat + "," + ne_lng + "|" + sw_lat + "," + sw_lng
+					# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -2070,17 +2060,17 @@ function load(){
 
 			elif((self.request.get('km-distance') != '') and (self.request.get('id') != '')):
 				directGeo = 0
-				ctrPoint = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+					# MongoDB
+
+				ctrPoint = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id'))})
 				radius = float(self.request.get('km-distance'))
-				results = GeoRefUsermadeMapPoint.proximity_fetch(
-					GeoRefUsermadeMapPoint.all(),
-					geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
-					max_results=100,
-					max_distance=1000 * radius)
+					#  MongoDB
+				results = db.GeoRefUsermadeMapPoint.find({ 'loc': { 'geoNear' : [float(ctrPoint.location.lat),float(ctrPoint.location.lon)], '$maxDistance': 1000 * radius } } ).limit(100)
 				if(self.request.get('map') == ''):
 					self.response.out.write('	var specialRegion=new google.maps.Circle({center:new google.maps.LatLng('+ str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon) + '), radius:'+str(1000*radius)+'});\n	map.fitBounds(specialRegion.getBounds());\n')
 				elif(self.request.get('map') == 'image'):
 					mapImgUrl = "http://maps.google.com/maps/api/staticmap?sensor=false&maptype=terrain&center=" + str(ctrPoint.location.lat) +',' + str(ctrPoint.location.lon)
+					# need MongoDB
 					hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 						GeoRefMapPoint.all(),
 						geotypes.Point(float(ctrPoint.location.lat),float(ctrPoint.location.lon)),
@@ -2104,7 +2094,8 @@ function load(){
 			myResults = oldPoints + newPoints
 		if myResults is not None:
 			self.response.out.write(myResults)
-			mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			# MongoDB
+			mapPoints = db.GeoRefUsermadeMapPoint.find().sort("lastUpdate":1)
 			results = mapPoints.fetch(30)
 			resultOut = u''
 			for pt in results:
@@ -2134,8 +2125,10 @@ function load(){
 			mapPoints = None
 			#mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
 			if(results is None):
-				mapPoints = GeoRefUsermadeMapPoint.all()
+				# MongoDB
+				mapPoints = db.GeoRefUsermadeMapPoint.find()
 				if mapPoints is not None:
+					# need MongoDB
 					results = mapPoints.fetch(200)
 			
 			if((results is not None) and (self.request.get('map') != 'image')):
@@ -2387,7 +2380,8 @@ img.zoom:hover{border:1px solid #000}
 			return
 		else:
 			if(jam == 'yes'):
-				jammers = GeoRefUsermadeMapPoint.gql("WHERE connections = :1 LIMIT 200", "jam")
+				# MongoDB
+				jammers = db.GeoRefUsermadeMapPoint.find({"connections":"jam"}).limit(200)
 				self.response.out.write('	jammers=[359001')
 				for jammer in jammers:
 					self.response.out.write(','+str(jammer.key().id()))
@@ -3900,11 +3894,13 @@ class AddTab(webapp.RequestHandler):
 			newTab.values=[]
 		newTab.put()
 		self.response.out.write('myPoints[openMarkerForTab].tabs[myPoints[openMarkerForTab].tabs.length-1]="'+self.request.get('type')+"|"+str(newTab.key().id())+'";infoWindow.close()')
-		mrk = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+		# MongoDB
+		mrk = db.GeoRefUsermadeMapPoint.find_one({'id':long(self.request.get('id'))})
 		mrk.tabs.append(self.request.get('type')+"|"+str(newTab.key().id()))
 		mrk.put()
 	else:
-		newTab = PointTab.get_by_id(long(tabId))
+		# MongoDB
+		newTab = db.PointTab.find_one({'id': long(tabId)})
 		if(self.request.get('content')!=''):
 			newTab.vars=[content.split('|')[0].split(',')]
 			newTab.values=[content.split('|')[1].split(',')]
@@ -3995,7 +3991,8 @@ class Contact(webapp.RequestHandler):
 	elif(self.request.get('id').find("http") != -1):
 		self.response.out.write('Go to the group website at: ' + self.request.get('id'))
 	else:
-		myPt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+		# MongoDB
+		myPt = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id'))})
 		email = myPt.email
 		if(myPt.email == 'null'):
 			email = myPt.creator.email()
@@ -4056,7 +4053,8 @@ class JSONout(webapp.RequestHandler):
 		self.response.out.write('var thisJSON=')
 
 	if(self.request.get('byid') != ""):
-		pt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('byid')))
+		# MongoDB
+		pt = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('byid'))})
 		usename = cgi.escape(pt.name)
 		if(usename.find("privatized") != -1):
 			fixname = usename.replace("privatized:","")
@@ -4154,7 +4152,8 @@ class JSONout(webapp.RequestHandler):
 }''')
 			return
 		else:
-			pagePoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			# MongoDB 
+			pagePoints = db.GeoRefUsermadeMapPoint.find().sort({"lastUpdate":-1})
 			pageitems = 50
 			if(self.request.get('per_page') != ""):
 				try:
@@ -4163,9 +4162,11 @@ class JSONout(webapp.RequestHandler):
 					pageitems = 50
 			if((pageitems > 0) and (pageitems <= 50)):
 				# accept lower count per page
+				# need MongoDB 
 				geoPoints = pagePoints.fetch(pageitems,(pagenum-1)*pageitems)
 			else:
 				# 50 maximum from pagePoints request
+				# need MongoDB 
 				geoPoints = pagePoints.fetch(50,(pagenum-1)*50)
 			self.response.out.write('''{
 	"page":"''' + str(pagenum) + '''",
@@ -4176,13 +4177,15 @@ class JSONout(webapp.RequestHandler):
 		self.response.out.write('''{
 	"country":"''' + self.request.get('country') + '''",
 	"pts":[''')
-		mapPoints = GeoRefMapPoint.gql("WHERE country = :1 LIMIT 100",self.request.get('country'))
+		# MongoDB
+		mapPoints = db.GeoRefMapPoint.find({"country" : self.request.get('country') }).limit(100)
 	
 	elif(self.request.get('state') != ""):
 		self.response.out.write('''{
 	"state":"''' + cgi.escape(self.request.get('state')) + '''",
 	"pts":[''')
-		mapPoints = GeoRefMapPoint.gql("WHERE region = :1 LIMIT 100",self.request.get('state'))
+		# MongoDB 
+		mapPoints = db.GeoRefMapPoint.find({"region" : self.request.get('state')}).limit(100)
 	
 	elif(self.request.get('center') != ""):
 		ctr_lat = None
@@ -4199,11 +4202,13 @@ class JSONout(webapp.RequestHandler):
 			ctr_lng = ctr_lng[0:ctr_lng.find('"')]
 			memcache.add("center:" + cgi.escape(self.request.get('center')),ctr_lat + "," + ctr_lng,500000)
 		radius = float(self.request.get('km-distance'))
+		# need MongoDB 
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 				GeoRefUsermadeMapPoint.all(),
 				geotypes.Point(float(ctr_lat),float(ctr_lng)),
 				max_results=100,
 				max_distance=1000 * radius)
+		# need MongoDB 
 		hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 				GeoRefMapPoint.all(),
 				geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -4218,6 +4223,7 @@ class JSONout(webapp.RequestHandler):
 		ctr_lat = self.request.get('llcenter').replace('%20','').split(',')[0]
 		ctr_lng = self.request.get('llcenter').replace('&20','').split(',')[1]
 		radius = float(self.request.get('km-distance'))
+		# need MongoDB 
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -4252,11 +4258,13 @@ class JSONout(webapp.RequestHandler):
 			sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 			sw_lng = sw_lng[0:sw_lng.find('"')]
 			memcache.add("region:" + cgi.escape(self.request.get('region')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+		# need MongoDB 
 		geoPoints = GeoRefUsermadeMapPoint.bounding_box_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
 			max_results=100
 		)
+		# need MongoDB 
 		hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -4270,11 +4278,13 @@ class JSONout(webapp.RequestHandler):
 		ne_lng = self.request.get('llregion').replace('%20','').split(',')[1]
 		sw_lat = self.request.get('llregion').replace('%20','').split(',')[2]
 		sw_lng = self.request.get('llregion').replace('%20','').split(',')[3]
+		# need MongoDB 
 		geoPoints = GeoRefUsermadeMapPoint.bounding_box_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
 			max_results=100
 		)
+		# need MongoDB 
 		hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -4285,13 +4295,16 @@ class JSONout(webapp.RequestHandler):
 	"pts":[''')
 	
 	elif((self.request.get('km-distance') != '') and (self.request.get('id') != '')):
-		ctrPoint = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+		# MongoDB
+		ctrPoint = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id')) })
 		radius = float(self.request.get('km-distance'))
+		# need MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Point(ctrPoint.location.lat,ctrPoint.location.lon),
 			max_results=100,
 			max_distance=1000 * radius)
+		# need MongoDB
 		hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Point(ctrPoint.location.lat,ctrPoint.location.lon),
@@ -4300,7 +4313,8 @@ class JSONout(webapp.RequestHandler):
 	drewPtPreviously = 0
 
 	if mapPoints is not None:
-		results = mapPoints.fetch(200)
+		# MongoDB
+		results = mapPoints.limit(200)
 		if results is not None:
 			for pt in results:
 				if(drewPtPreviously == 1):
@@ -4461,8 +4475,10 @@ class RSSout(webapp.RequestHandler):
 		<description>Global updates feed of volunteer and deployment community</description> 
 		<generator>Custom Google AppEngine Renderer</generator> 
 		<atom:link href="http://mapmeld.appspot.com/olpcMAPolpc/feed" rel="self" type="application/rss+xml" />\n''')
-	mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
-	results = mapPoints.fetch(10)
+	# MongoDB
+	mapPoints = db.GeoRefUsermadeMapPoint.find().sort({'lastUpdate':-1})
+	# MongoDB
+	results = mapPoints.limit(10)
 	for pt in results:
 		usename = cgi.escape(pt.name)
 		if(usename.find("privatized") != -1):
@@ -4529,7 +4545,8 @@ class KMLout(webapp.RequestHandler):
 	geoPoints = None
 	mapPoints = None
 	if(self.request.get('byid') != ""):
-		pt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('byid')))
+		# MongoDB
+		pt = db.GeoRefUsermadeMapPoint.find_one({'id' : long(self.request.get('byid') ) })
 		if(pt.icon==''):
 			pt.icon='DEFAULT'
 		usename = cgi.escape(pt.name)
@@ -4690,7 +4707,8 @@ class KMLout(webapp.RequestHandler):
 			self.response.out.write('	</Document>\n</kml>')
 			return
 		else:
-			pagePoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate DESC")
+			# MongoDB
+			pagePoints = db.GeoRefUsermadeMapPoint.find().sort({"lastUpdate":-1})
 			pageitems = 50
 			if(self.request.get('per_page') != ""):
 				try:
@@ -4699,9 +4717,11 @@ class KMLout(webapp.RequestHandler):
 					pageitems = 50
 			if((pageitems > 0) and (pageitems <= 50)):
 				# accept lower count per page
+				# MongoDB needed
 				geoPoints = pagePoints.fetch(pageitems,(pagenum-1)*pageitems)
 			else:
 				# 50 maximum from pagePoints request
+				# MongoDB needed
 				geoPoints = pagePoints.fetch(50,(pagenum-1)*50)
 			self.response.out.write('''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -4713,14 +4733,16 @@ class KMLout(webapp.RequestHandler):
 <kml xmlns="http://www.opengis.net/kml/2.2">
 	<Document>
 		<name>olpcMAP ''' + cgi.escape(self.request.get('country')) + '</name>\n')
-		mapPoints = GeoRefMapPoint.gql("WHERE country = :1 LIMIT 100",self.request.get('country'))
+		# MongoDB
+		mapPoints = db.GeoRefMapPoint.find({'country': self.request.get('country') }).limit(100)
 	
 	elif(self.request.get('state') != ""):
 		self.response.out.write('''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 	<Document>
 		<name>olpcMAP ''' + cgi.escape(self.request.get('state')) + '</name>\n')
-		mapPoints = GeoRefMapPoint.gql("WHERE region = :1 LIMIT 100",self.request.get('state'))
+		# MongoDB
+		mapPoints = db.GeoRefMapPoint.find({'region':self.request.get('state')}).limit(100)
 	
 	elif(self.request.get('center') != ""):
 		ctr_lat = None
@@ -4737,11 +4759,13 @@ class KMLout(webapp.RequestHandler):
 			ctr_lng = ctr_lng[0:ctr_lng.find('"')]
 			memcache.add("center:" + cgi.escape(self.request.get('center')),ctr_lat + "," + ctr_lng,500000)
 		radius = float(self.request.get('km-distance'))
+		# needs MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 				GeoRefUsermadeMapPoint.all(),
 				geotypes.Point(float(ctr_lat),float(ctr_lng)),
 				max_results=100,
 				max_distance=1000 * radius)
+		# needs MongoDB
 		hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 				GeoRefMapPoint.all(),
 				geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -4756,6 +4780,7 @@ class KMLout(webapp.RequestHandler):
 		ctr_lat = self.request.get('llcenter').replace('%20','').split(',')[0]
 		ctr_lng = self.request.get('llcenter').replace('&20','').split(',')[1]
 		radius = float(self.request.get('km-distance'))
+		# needs MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Point(float(ctr_lat),float(ctr_lng)),
@@ -4790,11 +4815,13 @@ class KMLout(webapp.RequestHandler):
 			sw_lng = llregion[llregion.find('west')+7:len(llregion)]
 			sw_lng = sw_lng[0:sw_lng.find('"')]
 			memcache.add("region:" + cgi.escape(self.request.get('region')),ne_lat + "," + ne_lng + "," + sw_lat + "," + sw_lng,500000)
+		# needs MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.bounding_box_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
 			max_results=100
 		)
+		# needs MongoDB
 		hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -4809,11 +4836,13 @@ class KMLout(webapp.RequestHandler):
 		ne_lng = self.request.get('llregion').replace('%20','').split(',')[1]
 		sw_lat = self.request.get('llregion').replace('%20','').split(',')[2]
 		sw_lng = self.request.get('llregion').replace('%20','').split(',')[3]
+		# needs MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.bounding_box_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
 			max_results=100
 		)
+		# needs MongoDB
 		hiddenGeoResults = GeoRefMapPoint.bounding_box_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Box(float(ne_lat),float(ne_lng),float(sw_lat),float(sw_lng)),
@@ -4826,13 +4855,17 @@ class KMLout(webapp.RequestHandler):
 
 	
 	elif((self.request.get('km-distance') != '') and (self.request.get('id') != '')):
-		ctrPoint = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+		# MongoDB
+		ctrPoint = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id')) })
 		radius = float(self.request.get('km-distance'))
+
+		# needs MongoDB
 		geoPoints = GeoRefUsermadeMapPoint.proximity_fetch(
 			GeoRefUsermadeMapPoint.all(),
 			geotypes.Point(ctrPoint.location.lat,ctrPoint.location.lon),
 			max_results=100,
 			max_distance=1000 * radius)
+		# needs MongoDB
 		hiddenGeoResults = GeoRefMapPoint.proximity_fetch(
 			GeoRefMapPoint.all(),
 			geotypes.Point(ctrPoint.location.lat,ctrPoint.location.lon),
@@ -4846,7 +4879,8 @@ class KMLout(webapp.RequestHandler):
 	existingIcons = {}
 	
 	if mapPoints is not None:
-		results = mapPoints.fetch(200)
+		# MongoDB
+		results = mapPoints.find().limit(200)
 		if results is not None:
 			for pt in results:
 				if(pt.icon==''):
@@ -5026,7 +5060,8 @@ class ShareMain(webapp.RequestHandler):
 	
 	tags = self.request.get('tags').lower().replace(',',' ').replace('.',' ').replace('%20',' ').replace('  ',' ').split(' ')
 	for tag in tags:
-		myTag = SearchTag.gql("WHERE term = :1", tag).get()
+		# MongoDB
+		myTag = db.SearchTag.find_one({"term" : tag})
 		if(myTag is not None):
 			# add to existing tag
 			myTag.tagLinks.append(str(myLink.key().id()))
@@ -5265,7 +5300,8 @@ class Search(webapp.RequestHandler):
 				q = q.split(' ')
 			for qword in q:
 				# locate tags for each individual term term
-				tag = SearchTag.gql("WHERE term = :1", qword).get()
+				# MongoDB
+				tag = SearchTag.find_one({"term" : qword})
 				if tag is not None:
 					for res in tag.tagLinks:
 						prevTerm = 0
@@ -5276,7 +5312,8 @@ class Search(webapp.RequestHandler):
 						if(prevTerm != -2):
 							# if not previously added to results, add into results
 							foundTerms.append(res)
-							link = SearchLink.get_by_id(long(res))
+							# MongoDB
+							link = SearchLink.find({'id':long(res)})
 							response=response+('omList.push({name:"' + cgi.escape( link.title) + '",acceptance:"geoq ' + cgi.escape(link.geoscope.replace(","," ")) + '",href:"' + link.href.replace('"','') + '",sharer:"' + cgi.escape(link.sharer) + '"});')
 			# once done listing results, add to search results div
 			response=response+('$("olpcMAPsr").innerHTML=writeSearchCat("Shared @ olpcMAP <a href=\'http://mapmeld.appspot.com/olpcMAPolpc/share\' target=\'_blank\'><img src=\'http://mapmeld.appspot.com/plusIcon.gif\' height=\'13\' width=\'13\' style=\'vertical-align:middle;\' alt=\'Add\'/></a>",omList);')
@@ -5302,8 +5339,9 @@ class Oldest(webapp.RequestHandler):
 	self.snap()
 
   def snap(self):
-	mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate ASC")
-	results = mapPoints.fetch(240)
+	#mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate ASC")
+	# MongoDB
+	results = db.GeoRefUsermadeMapPoint.find().sort({'lastUpdate':1}).limit(240)
 	resultOut=u''
 	for pt in results:
 		resultOut = resultOut + u'p({name:"'
@@ -5332,7 +5370,7 @@ class Oldest(webapp.RequestHandler):
 
 class ResetPoint(webapp.RequestHandler):
   def get(self):
-	pt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+	pt = db.GeoRefUsermadeMapPoint.find_one({'id':long(self.request.get('id'))})
 	if pt is None:
 		self.redirect('http://olpcMAP.net')
 	self.response.out.write('''<!DOCTYPE html>
@@ -5710,7 +5748,8 @@ class MapImage(webapp.RequestHandler):
 	elif(self.request.get('frame')=='show'):
 		self.response.out.write('http://mapmeld.appspot.com/olpcMAPimg?pic=' + self.request.get('pic'))
 	else:
-		callphoto = PhotoUpload.get_by_id(int(self.request.get('pic')))
+		# MongoDB
+		callphoto = db.PhotoUpload.find_one({'id': int(self.request.get('pic')) })
 		if callphoto is not None:
 			if(callphoto.redirectUrl == ''):
 				self.response.headers['Content-Type'] = "image/jpeg"
@@ -5735,8 +5774,9 @@ class Newest(webapp.RequestHandler):
   def get(self):
 	self.snap()
   def snap(self):
-	mapPoints = GeoRefUsermadeMapPoint.gql("ORDER BY lastUpdate ASC")
-	results = mapPoints.fetch(240,240)
+	# MongoDB
+	results = db.GeoRefUsermadeMapPoint.find().sort({"lastUpdate":1})
+	#results = mapPoints.fetch(240,240)
 	resultOut=u''
 	for pt in results:
 		resultOut = resultOut + u'pS({name:"'
@@ -5767,13 +5807,17 @@ class MakePoint(webapp.RequestHandler):
   def get(self):
 	pt = None
 	try:
-		pt = GeoRefUsermadeMapPoint.get_by_id(long(self.request.get('id')))
+		# MongoDB
+		pt = db.GeoRefUsermadeMapPoint.find_one({'id': long(self.request.get('id'))})
 	except:
 		try:
-			pt = MapPoint.get_by_id(long(self.request.get('id')))
+			# MongoDB
+			pt = db.MapPoint.find_one({'id':long(self.request.get('id'))})
 		except:
-			pt = GeoRefUsermadeMapPoint(location=self.request.get('point'))
+			# MongoDB
+			pt = db.GeoRefUsermadeMapPoint.find_one({'loc':self.request.get('point').split(',')})
 			if(self.request.get('mail') == ''):
+				# Non MongoDB able
 				pt.creator = users.get_current_user()
 			elif(self.request.get('mail') == 'null'):
 				pt.creator = users.User("suggestEdit@mapmeld.com")
@@ -5830,7 +5874,8 @@ class MakePoint(webapp.RequestHandler):
 
 class EmailConfirming(webapp.RequestHandler):
   def get(self):
-	confirm = EmailConfirm.gql("WHERE ekey = :1", cgi.escape(self.request.get('key'))).get()
+	# MongoDB
+	confirm = db.EmailConfirm.find_one({"ekey" : cgi.escape(self.request.get('key')) })
 	if confirm is not None:
 		if(self.request.get('id') != str(confirm.key().id())):
 			self.response.out.write('Confirmation code or ID did not match')
@@ -5840,9 +5885,11 @@ class EmailConfirming(webapp.RequestHandler):
 		return
 	pt = None
 	try:
-		pt = GeoRefUsermadeMapPoint.get_by_id(long(confirm.mid))
+		# MongoDB
+		pt = db.GeoRefUsermadeMapPoint.find_one({'id': long(confirm.mid)})
 	except:
-		pt = MapPoint.get_by_id(long(confirm.mid))
+		# MongoDB
+		pt = db.MapPoint.find_one({'id': long(confirm.mid)})
 	pt.location = confirm.mlocation
 	pt.name = confirm.mname
 	pt.update_location()
